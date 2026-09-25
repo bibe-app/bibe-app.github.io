@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BIBE</title>
+<meta name="description" content="Trouvez le lait de votre bebe dans une pharmacie proche.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0B7A52" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C1310" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BIBE">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex">
+<meta name="bibe-version" content="0.1.0">
+</head>
+<body>
+
+<style>
+  :root {
+    --paper: #F2F5F1; --card: #FFFFFF; --sunk: #E9EEE8;
+    --ink: #14201B; --soft: #52625A; --faint: #849289;
+    --rule: #DCE4DD; --firm: #C2CEC5;
+    --green: #0B7A52; --wash: #E0EFE7;
+    --corail: #C4462A; --corail-wash: #F8E7E2;
+    --badge: #E9EEE8; --badge-sel: #C8E3D5;
+    --amber: #9A5B08; --hors: #0C1310;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0C1310; --card: #141D18; --sunk: #101915;
+      --ink: #E3ECE6; --soft: #9FB1A7; --faint: #74857B;
+      --rule: #24302A; --firm: #35443C;
+      --green: #34C48A; --wash: #14301F;
+      --corail: #F08A6E; --corail-wash: #351B15;
+      --badge: #1E2A24; --badge-sel: #1F4231;
+      --amber: #DFA255; --hors: #050907;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0C1310; --card: #141D18; --sunk: #101915;
+    --ink: #E3ECE6; --soft: #9FB1A7; --faint: #74857B;
+    --rule: #24302A; --firm: #35443C;
+    --green: #34C48A; --wash: #14301F;
+    --corail: #F08A6E; --corail-wash: #351B15;
+    --badge: #1E2A24; --badge-sel: #1F4231;
+    --amber: #DFA255; --hors: #050907;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--hors); color: var(--ink); font-family: var(--sans);
+    font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 22px 16px 36px; gap: 18px; min-height: 100vh;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+  .tel {
+    width: 100%; max-width: 412px; background: var(--paper); border-radius: 26px;
+    overflow: hidden; position: relative; display: flex; flex-direction: column;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+    height: 790px; max-height: calc(100vh - 110px); min-height: 560px;
+  }
+  .ecran { flex: 1; overflow-y: auto; padding: 0 18px 100px; }
+  .ecran::-webkit-scrollbar { width: 0; }
+
+  /* Sur un vrai telephone, et une fois l'application ajoutee a l'ecran
+     d'accueil, le cadre n'a plus de sens : on occupe tout l'ecran.
+     100dvh et non 100vh, sinon la barre d'adresse mobile rogne le bas. */
+  @media (max-width: 480px), (display-mode: standalone) {
+    body { padding: 0; gap: 0; min-height: 100dvh; background: var(--paper); }
+    .tel {
+      max-width: none; width: 100%; height: 100dvh; max-height: none;
+      min-height: 0; border-radius: 0; box-shadow: none;
+    }
+    .ecran { padding-left: 16px; padding-right: 16px; }
+    .legende { display: none; }
+    /* Encoche et barre de geste : on respecte les zones sures d'iPhone. */
+    .haut { padding-top: calc(17px + env(safe-area-inset-top)); }
+    .bas { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  }
+
+  /* ---------- Ouverture ---------- */
+
+  .splash {
+    position: absolute; inset: 0; background: var(--paper); z-index: 40;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; cursor: pointer;
+  }
+  .splash-logo {
+    font-size: 46px; font-weight: 800; letter-spacing: 4px; color: var(--green);
+    animation: apparait 0.7s ease both;
+  }
+  .splash-bl { font-size: 14.5px; color: var(--soft); animation: apparait 0.7s 0.25s ease both; }
+  .splash-note { position: absolute; bottom: 26px; font-size: 12px; color: var(--faint); }
+  @keyframes apparait { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .splash-logo, .splash-bl { animation: none; } }
+
+  /* ---------- Barre haute ---------- */
+
+  .haut { position: sticky; top: 0; z-index: 5; background: var(--paper);
+    padding: 17px 0 11px; display: flex; align-items: center; gap: 10px; }
+  .logo { font-size: 19px; font-weight: 800; letter-spacing: 1.4px; color: var(--green); }
+  .role-tag {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--faint); border: 1px solid var(--rule); padding: 4px 8px; border-radius: 5px;
+    background: none;
+  }
+  .role-tag:hover { color: var(--ink); border-color: var(--faint); }
+  .retour { background: none; border: none; padding: 6px 8px 6px 0; color: var(--soft);
+    font-size: 15px; display: inline-flex; align-items: center; gap: 6px; }
+  .retour:hover { color: var(--ink); }
+  .haut-fin { margin-left: auto; display: flex; align-items: center; gap: 9px; }
+  .rond { background: var(--card); border: 1px solid var(--firm); border-radius: 999px;
+    width: 33px; height: 33px; display: inline-flex; align-items: center; justify-content: center; color: var(--soft); }
+  .rond:hover { color: var(--ink); border-color: var(--faint); }
+
+  h1 { font-size: 25px; font-weight: 800; letter-spacing: -0.03em; margin: 6px 0 6px; text-wrap: balance; }
+  h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .chapo { color: var(--soft); margin: 0 0 20px; font-size: 15px; }
+
+  /* ---------- Choix du role ---------- */
+
+  .role-carte {
+    width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 16px;
+    padding: 20px; text-align: left; margin-bottom: 11px; display: flex; flex-direction: column; gap: 5px;
+  }
+  .role-carte:hover { border-color: var(--green); }
+  .role-carte .t { font-size: 18px; font-weight: 700; }
+  .role-carte .d { font-size: 14px; color: var(--soft); line-height: 1.45; }
+
+  /* ---------- Communs ---------- */
+
+  .carte-lait { background: var(--card); border: 1px solid var(--rule); border-radius: 16px;
+    padding: 16px; display: flex; align-items: center; gap: 14px; width: 100%;
+    text-align: left; margin-bottom: 10px; }
+  .carte-lait:hover { border-color: var(--firm); }
+  .carte-lait.fantome { border-style: dashed; background: transparent; cursor: default;
+    font-style: italic; opacity: 0.62; }
+  .carte-lait.fantome:hover { border-color: var(--rule); }
+  .carte-lait.fantome .vignette { background: var(--sunk); color: var(--faint); }
+  .legende-fantome { margin: 8px 0 0; font-size: 12.5px; color: var(--faint);
+    font-style: italic; text-align: center; }
+  .vignette { flex: none; width: 46px; height: 46px; border-radius: 12px; background: var(--wash);
+    color: var(--green); display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; }
+  .carte-lait .qui { font-size: 12.5px; color: var(--faint); }
+  .carte-lait .quoi { font-weight: 700; }
+  .carte-lait .marque { font-size: 13px; color: var(--soft); }
+
+  .cta { width: 100%; background: var(--corail); color: #fff; border: none; border-radius: 14px;
+    padding: 17px; font-size: 17px; font-weight: 700; margin-top: 13px; }
+  .cta.vert { background: var(--green); color: var(--paper); }
+  .cta:hover { filter: brightness(1.06); }
+  .cta-2 { width: 100%; background: none; color: var(--soft); border: 1px solid var(--firm);
+    border-radius: 14px; padding: 14px; font-size: 15px; margin-top: 10px; }
+  .cta-2:hover { color: var(--ink); border-color: var(--faint); }
+  .aide { margin-top: 20px; padding: 14px 16px; background: var(--sunk); border-radius: 12px;
+    font-size: 13.5px; color: var(--soft); line-height: 1.5; }
+
+  /* Encart du compte, en bas de l'accueil parent */
+  .encart-compte {
+    margin-top: 22px; padding: 18px; background: var(--card);
+    border: 1px solid var(--rule); border-radius: 14px;
+  }
+  .encart-titre { margin: 0 0 12px; font-size: 16.5px; font-weight: 700; }
+  .encart-liste {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .encart-liste li {
+    position: relative; padding-left: 24px; font-size: 14px;
+    color: var(--soft); line-height: 1.45;
+  }
+  .encart-liste li::before {
+    content: "✓"; position: absolute; left: 0; top: 0;
+    color: var(--green); font-weight: 800; font-size: 13px;
+  }
+  .encart-compte .cta { margin-top: 16px; }
+  .encart-pied {
+    margin: 12px 0 0; font-size: 12.5px; color: var(--faint);
+    line-height: 1.45; text-align: center;
+  }
+
+  .champ { width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 14px 16px; font-size: 16px; margin-bottom: 10px; }
+  .champ::placeholder { color: var(--faint); }
+  .code { letter-spacing: 0.45em; font-family: var(--mono); text-align: center; font-size: 21px; }
+
+  .famille { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--faint); margin: 20px 0 8px; }
+  .grille { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+  .marque-carte { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 13px 12px; text-align: left; font-weight: 700; font-size: 14.5px; min-height: 62px;
+    display: flex; flex-direction: column; justify-content: center; gap: 3px; position: relative; }
+  .marque-carte:hover { border-color: var(--firm); }
+  .marque-carte .nb { font-size: 11.5px; font-weight: 400; color: var(--faint); font-family: var(--mono); }
+  .marque-carte[data-etat="fait"] { border-color: var(--green); background: var(--wash); }
+  .marque-carte[data-etat="fait"] .nb { color: var(--green); font-weight: 600; }
+  .marque-carte[data-etat="absente"] { background: var(--sunk); border-style: dashed; opacity: 0.72; }
+  .marque-carte[data-etat="absente"] .nb { color: var(--amber); }
+
+  .recherche { width: 100%; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 12px; padding: 13px 15px; font-size: 16px; margin-bottom: 4px; }
+  .recherche::placeholder { color: var(--faint); }
+
+  .groupe { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--faint); margin: 18px 0 7px; }
+  .ligne { width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 14px 15px; text-align: left; display: flex; align-items: center; gap: 11px; margin-bottom: 7px; }
+  .ligne:hover { border-color: var(--firm); }
+  .ligne[aria-pressed="true"] { border-color: var(--green); background: var(--wash); }
+  .ligne .nom { font-weight: 600; }
+  .ligne .spec { font-size: 11.5px; color: var(--soft); background: var(--badge);
+    padding: 2px 8px; border-radius: 5px; margin-left: auto; white-space: nowrap; }
+  .ligne[aria-pressed="true"] .spec { background: var(--badge-sel); color: var(--ink); }
+  .case { flex: none; width: 22px; height: 22px; border: 2px solid var(--firm); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    font-weight: 800; color: transparent; }
+  .ligne[aria-pressed="true"] .case { background: var(--green); border-color: var(--green); color: var(--paper); }
+
+  /* ---------- Parent : resultats ---------- */
+
+  .bandeau-lait { background: var(--wash); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+  .bandeau-lait .m { font-size: 11px; font-weight: 700; color: var(--green);
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .bandeau-lait .p { font-weight: 700; }
+  .pdv { width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 15px; text-align: left; margin-bottom: 9px; display: flex; flex-direction: column; gap: 7px; }
+  .pdv:hover { border-color: var(--firm); }
+  .pdv-haut { display: flex; gap: 12px; align-items: flex-start; }
+  .pdv-nom { font-weight: 700; font-size: 16px; line-height: 1.25; }
+  .pdv-adr { font-size: 13px; color: var(--soft); }
+  .pdv-dist { margin-left: auto; font-family: var(--mono); font-weight: 700; color: var(--green);
+    font-size: 15px; white-space: nowrap; }
+  .etiquette { display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+    padding: 3px 9px; border-radius: 6px; font-weight: 600; align-self: flex-start; }
+  .etiquette.ok { background: var(--wash); color: var(--green); }
+  .etiquette.inconnu { background: var(--badge); color: var(--soft); }
+  .avert { font-size: 12.5px; color: var(--soft); background: var(--sunk); padding: 11px 13px;
+    border-radius: 10px; margin-bottom: 14px; line-height: 1.45; }
+
+  .fiche-actions { display: flex; gap: 9px; margin: 18px 0 14px; }
+  .act-1 { flex: 2; background: var(--corail); color: #fff; border: none; border-radius: 13px;
+    padding: 16px; font-size: 16px; font-weight: 700; }
+  .act-2 { flex: 1; background: var(--wash); color: var(--green); border: none; border-radius: 13px;
+    padding: 16px; font-size: 16px; font-weight: 700; }
+  .infos { display: flex; flex-direction: column; gap: 1px; background: var(--rule);
+    border-radius: 12px; overflow: hidden; }
+  .info { background: var(--card); padding: 13px 15px; display: flex; gap: 12px; font-size: 14.5px; }
+  .info .k { color: var(--faint); min-width: 74px; font-size: 13px; }
+
+  .question-bloc { text-align: center; padding: 28px 0 8px; }
+  .reponses { display: flex; gap: 10px; margin-top: 20px; }
+  .rep { flex: 1; background: var(--card); border: 1px solid var(--firm); border-radius: 14px;
+    padding: 18px 10px; font-size: 16px; font-weight: 700; }
+  .rep.oui:hover { border-color: var(--green); color: var(--green); }
+  .rep.non:hover { border-color: var(--corail); color: var(--corail); }
+
+  .vide { text-align: center; padding: 24px 0 8px; }
+  .vide-rond { width: 58px; height: 58px; border-radius: 50%; background: var(--sunk);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+    font-size: 24px; color: var(--faint); }
+  .equiv { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 14px 15px; margin-bottom: 8px; text-align: left; width: 100%; }
+  .equiv:hover { border-color: var(--firm); }
+  .equiv .em { font-size: 11px; font-weight: 700; color: var(--green);
+    text-transform: uppercase; letter-spacing: 0.05em; }
+  .equiv .ep { font-weight: 600; }
+  .source { margin-top: 16px; padding: 13px 15px; background: var(--sunk); border-radius: 10px;
+    font-size: 12.5px; color: var(--soft); line-height: 1.5; }
+
+  .reglage { display: flex; align-items: center; gap: 12px; background: var(--card);
+    border: 1px solid var(--rule); border-radius: 12px; padding: 14px 15px;
+    margin-bottom: 8px; width: 100%; text-align: left; }
+  .reglage .val { margin-left: auto; color: var(--faint); font-size: 14px; }
+
+  /* ---------- Pro ---------- */
+
+  .bloc { background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 17px; margin-bottom: 12px; }
+  .bloc-titre { font-family: var(--mono); font-size: 10px; letter-spacing: 0.11em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 11px; }
+  .chiffres { display: flex; gap: 24px; }
+  .chiffres div { display: flex; flex-direction: column; }
+  .chiffres .v { font-family: var(--mono); font-size: 25px; font-weight: 700; color: var(--green);
+    font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .chiffres .l { font-size: 12px; color: var(--faint); }
+  .maj { font-size: 13px; color: var(--soft); margin: 10px 0 0; }
+  .manques { border-color: var(--corail); }
+  .manques .bloc-titre { color: var(--corail); }
+  .manque-ligne { display: flex; align-items: center; gap: 11px; padding: 10px 0;
+    border-bottom: 1px solid var(--rule); }
+  .manque-ligne:last-of-type { border-bottom: none; }
+  .manque-nb { font-family: var(--mono); font-weight: 700; color: var(--corail); font-size: 17px;
+    min-width: 26px; font-variant-numeric: tabular-nums; }
+  .manque-lait { font-weight: 600; font-size: 14.5px; }
+  .manque-marque { font-size: 12px; color: var(--faint); }
+  .encart-vente { margin-top: 12px; padding: 12px 14px; background: var(--corail-wash);
+    border-radius: 10px; font-size: 13px; color: var(--soft); line-height: 1.5; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .stat { background: var(--card); padding: 14px; }
+  .stat .v { font-family: var(--mono); font-size: 22px; font-weight: 700;
+    font-variant-numeric: tabular-nums; display: block; line-height: 1.15; }
+  .stat .l { font-size: 12px; color: var(--soft); line-height: 1.35; }
+  .fiche-ligne { display: flex; gap: 10px; padding: 8px 0; font-size: 14.5px; }
+  .fiche-ligne .k { color: var(--faint); min-width: 92px; font-size: 13px; }
+
+  .recap-marque { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 13px 15px; margin-bottom: 8px; }
+  .recap-nom { font-weight: 700; font-size: 15px; display: flex; align-items: baseline;
+    gap: 10px; margin-bottom: 8px; }
+  .recap-nb { font-family: var(--mono); font-size: 11px; color: var(--faint); font-weight: 400;
+    margin-left: auto; font-variant-numeric: tabular-nums; }
+  .recap-refs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .puce { font-size: 12.5px; background: var(--wash); color: var(--green);
+    padding: 4px 9px; border-radius: 7px; font-weight: 600; }
+
+  .avancement { display: flex; align-items: center; gap: 11px; margin: 14px 0 4px; }
+  .jauge { flex: 1; height: 5px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
+  .jauge-remplie { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.28s ease; }
+  .compteur { font-family: var(--mono); font-size: 12px; color: var(--soft);
+    font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- Navigation basse ---------- */
+
+  .bas { position: absolute; left: 0; right: 0; bottom: 0; background: var(--card);
+    border-top: 1px solid var(--rule); display: flex; padding: 8px 6px 12px; }
+  .onglet { flex: 1; background: none; border: none; padding: 6px 4px; font-size: 11px; color: var(--faint); }
+  .onglet[aria-current="true"] { color: var(--green); font-weight: 700; }
+
+  .legende { max-width: 412px; width: 100%; color: #7d8c84; font-size: 12.5px;
+    line-height: 1.6; text-align: center; }
+  .legende b { color: #b9c7bf; }
+</style>
+
+<div class="tel">
+  <div class="splash" id="splash">
+    <div class="splash-logo">BIBE</div>
+    <div class="splash-bl">Le lait de votre bébé, près de vous</div>
+    <div class="splash-note">Touchez pour continuer</div>
+  </div>
+  <div class="ecran" id="ecran"></div>
+  <nav class="bas" id="bas"></nav>
+</div>
+
+<p class="legende">
+  <b>Maquette de démonstration.</b> Points de vente, statistiques et demandes non
+  satisfaites sont fictifs. Les vignettes tiennent la place des futurs logos de marques.
+</p>
+
+<script>
+(function () {
+  "use strict";
+
+  var FAMILLES = [{"libelle": "Marques courantes", "marques": [{"nom": "Blédilait", "produits": [["Blédilait 1", "0-6 mois", ""], ["Blédilait 2", "6-12 mois", ""], ["Blédilait Croissance", "12 mois et +", ""], ["Premium 1 Formule épaissie", "0-6 mois", "Épaissi"], ["Premium 2 Formule épaissie", "6-12 mois", "Épaissi"], ["Blédilait AR", "0-12 mois", "Anti-régurgitations"]]}, {"nom": "Candia Baby", "produits": [["Baby 2", "6-12 mois", ""], ["Baby Croissance", "12 mois et +", ""]]}, {"nom": "France Lait", "produits": [["France Lait 1", "0-6 mois", ""], ["France Lait 2", "6-12 mois", ""], ["France Lait 3", "12 mois et +", ""]]}, {"nom": "Gallia", "produits": [["Calisma 1", "0-6 mois", ""], ["Calisma 2", "6-12 mois", ""], ["Calisma Relais 1", "0-6 mois", ""], ["Calisma Relais 2", "6-12 mois", ""], ["Calisma Croissance", "12 mois et +", ""], ["Calisma Junior", "12 mois et +", ""], ["Galliagest Premium 1", "0-6 mois", "Confort digestif"], ["Galliagest Premium 2", "6-12 mois", "Confort digestif"], ["Galliagest Croissance", "12 mois et +", "Confort digestif"], ["Bébé Expert AR amidon", "0-12 mois", "Anti-régurgitations"], ["Bébé Expert AR Caroube 2", "6-12 mois", "Anti-régurgitations"], ["Bébé Expert AC Transit 1", "0-6 mois", "Transit"], ["Procesa 1", "0-6 mois", ""], ["Procesa 2", "6-12 mois", ""]]}, {"nom": "Guigoz", "produits": [["Optipro 1", "0-6 mois", ""], ["Optipro 2", "6-12 mois", ""], ["Optipro 3 Croissance", "12 mois et +", ""], ["Ultima 1", "0-6 mois", ""], ["Ultima 2", "6-12 mois", ""], ["Relais 1", "0-6 mois", ""], ["Gest 1", "0-6 mois", "Confort digestif"], ["Digest Plus", "0-12 mois", "Confort digestif"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations"], ["Expert AR 1 Mix", "0-6 mois", "Anti-régurgitations"], ["Expert AR 2 Mix", "6-12 mois", "Anti-régurgitations"], ["Pelargon 1", "0-6 mois", "Transit"], ["Evolia 1", "0-6 mois", ""], ["Evolia 2", "6-12 mois", ""]]}, {"nom": "Inostime", "produits": [["LPN HMO Plus 1", "0-6 mois", ""], ["LPN HMO Plus 2", "6-12 mois", ""]]}, {"nom": "Lactel Éveil", "produits": [["Éveil Croissance", "12 mois et +", ""]]}, {"nom": "Milumel", "produits": [["Milumel 1", "0-6 mois", ""], ["Milumel 2", "6-12 mois", ""], ["Lémiel 1", "0-6 mois", ""], ["Milumel Croissance", "12 mois et +", ""]]}, {"nom": "Modilac", "produits": [["Doucéa 1", "0-6 mois", ""], ["Doucéa 2", "6-12 mois", ""], ["Précision 1", "0-6 mois", ""], ["Précision 2", "6-12 mois", ""], ["Actigest 1", "0-6 mois", "Confort digestif"], ["Actigest 2", "6-12 mois", "Confort digestif"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations"], ["Expert Riz 1", "0-6 mois", "Sans PLV"], ["Expert Riz 2", "6-12 mois", "Sans PLV"]]}, {"nom": "Nidal", "produits": [["Nidal 1", "0-6 mois", ""], ["Nidal 2", "6-12 mois", ""], ["Nidal Croissance", "12 mois et +", ""], ["Gest 1", "0-6 mois", "Confort digestif"]]}, {"nom": "Novalac", "produits": [["Novalac 1", "0-6 mois", ""], ["Novalac 2", "6-12 mois", ""], ["Novalac 3 Croissance", "12 mois et +", ""], ["Relia 1", "0-6 mois", ""], ["Relia 2", "6-12 mois", ""], ["AR 0-36 mois", "0-12 mois", "Anti-régurgitations"], ["AR Plus 1", "0-6 mois", "Anti-régurgitations"], ["AR Plus 2", "6-12 mois", "Anti-régurgitations"], ["Novagest Plus", "0-12 mois", "Confort digestif"], ["Transit 0-36 mois", "0-12 mois", "Transit"], ["Novalac AC", "0-6 mois", "Coliques"]]}, {"nom": "Nutriben", "produits": [["Innova 1", "0-6 mois", ""], ["Innova 2", "6-12 mois", ""], ["Nutriben 3", "12 mois et +", ""], ["AR 1", "0-6 mois", "Anti-régurgitations"], ["AR 2", "6-12 mois", "Anti-régurgitations"]]}, {"nom": "Physiolac", "produits": [["Physiolac 1", "0-6 mois", ""], ["Physiolac 2", "6-12 mois", ""], ["Relais 1", "0-6 mois", ""], ["Physiolac AR", "0-6 mois", "Anti-régurgitations"]]}, {"nom": "Picot", "produits": [["Nutrition Quotidienne 1", "0-6 mois", ""], ["Nutrition Quotidienne 2", "6-12 mois", ""], ["Standard 2", "6-12 mois", ""], ["Croissance", "12 mois et +", ""], ["AR 2", "6-12 mois", "Anti-régurgitations"], ["Expert Picogest 1", "0-6 mois", "Confort digestif"], ["Expert Picogest 2", "6-12 mois", "Confort digestif"], ["Pepti-Junior", "0-12 mois", "Hydrolysat"]]}]}, {"libelle": "Marques bio", "marques": [{"nom": "Babybio", "produits": [["Primea 1", "0-6 mois", ""], ["Primea 2", "6-12 mois", ""], ["Primea 3", "12 mois et +", ""], ["Optima 1", "0-6 mois", ""], ["Optima 2", "6-12 mois", ""], ["Optima 3", "12 mois et +", ""], ["Caprea 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "Biostime", "produits": [["SN-2 Bio Plus 1", "0-6 mois", ""], ["SN-2 Bio Plus 2", "6-12 mois", ""], ["SN-2 Bio Plus 3", "12 mois et +", ""], ["SN-2 Bio Chèvre 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "Every Milk", "produits": [["Every Milk 1 Bio", "0-6 mois", ""], ["Every Milk 2 Bio", "6-12 mois", ""], ["Every Milk 3 Bio", "12 mois et +", ""]]}, {"nom": "France Bébé Bio", "produits": [["France Bébé Bio 1", "0-6 mois", ""], ["France Bébé Bio 2", "6-12 mois", ""], ["France Bébé Bio 3", "12 mois et +", ""]]}, {"nom": "Good Goût", "produits": [["Good Goût 1", "0-6 mois", ""], ["Good Goût 2", "6-12 mois", ""], ["Good Goût 3", "12 mois et +", ""]]}, {"nom": "HiPP Bio", "produits": [["Combiotic 1", "0-6 mois", ""], ["Combiotic 2", "6-12 mois", ""], ["Combiotic 3", "12 mois et +", ""], ["Essentia 1", "0-6 mois", ""], ["Essentia 2", "6-12 mois", ""], ["Essentia 3", "12 mois et +", ""]]}, {"nom": "Holle", "produits": [["Holle Bio 1", "0-6 mois", ""], ["Holle Bio 2", "6-12 mois", ""], ["Holle Bio 3", "12 mois et +", ""], ["A2 Bio 2", "6-12 mois", ""], ["A2 Bio 3", "12 mois et +", ""], ["Holle Chèvre 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "Junéo", "produits": [["Junéo 1", "0-6 mois", ""], ["Junéo 2", "6-12 mois", ""], ["Junéo 3", "12 mois et +", ""], ["Junéo Chèvre 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "La Marque en Moins", "produits": [["La Marque en Moins 1", "0-6 mois", ""], ["La Marque en Moins 2", "6-12 mois", ""], ["La Marque en Moins 3", "12 mois et +", ""]]}, {"nom": "Les Petits Culottés", "produits": [["Les Petits Culottés 1", "0-6 mois", ""], ["Les Petits Culottés 2", "6-12 mois", ""], ["Les Petits Culottés 3", "12 mois et +", ""]]}, {"nom": "Les Récoltes Bio", "produits": [["Les Récoltes Bio 1", "0-6 mois", ""], ["Les Récoltes Bio 2", "6-12 mois", ""], ["Les Récoltes Bio 3", "12 mois et +", ""]]}, {"nom": "Nactalia", "produits": [["Nactalia 1", "0-6 mois", ""], ["Nactalia 2", "6-12 mois", ""], ["Nactalia 3", "12 mois et +", ""]]}, {"nom": "Popote", "produits": [["Popote 1", "0-6 mois", ""], ["Popote Croissance", "12 mois et +", ""]]}, {"nom": "Prémibio", "produits": [["Prémilait 1", "0-6 mois", ""], ["Prémilait 2", "6-12 mois", ""], ["Prémilait 3", "12 mois et +", ""], ["Prémichèvre 1", "0-6 mois", "Lait de chèvre"]]}]}, {"libelle": "Laits de chèvre", "marques": [{"nom": "Capricare", "produits": [["Capricare 1", "0-6 mois", "Lait de chèvre"], ["Capricare 2", "6-12 mois", "Lait de chèvre"], ["Capricare 3", "12 mois et +", "Lait de chèvre"]]}, {"nom": "Kabrita", "produits": [["Kabrita 1", "0-6 mois", "Lait de chèvre"], ["Kabrita 2", "6-12 mois", "Lait de chèvre"], ["Kabrita 3", "12 mois et +", "Lait de chèvre"]]}]}, {"libelle": "Préparations médicales — souvent sur ordonnance", "marques": [{"nom": "Alfamino", "produits": [["Alfamino", "0-12 mois", "Acides aminés"]]}, {"nom": "Alfaré", "produits": [["Alfaré", "0-12 mois", "Hydrolysat poussé"]]}, {"nom": "Althéra", "produits": [["Althéra", "0-12 mois", "Hydrolysat poussé"]]}, {"nom": "Neocate", "produits": [["Neocate Syneo", "0-12 mois", "Acides aminés"], ["Neocate Junior", "12 mois et +", "Acides aminés"]]}, {"nom": "Novalac Allernova", "produits": [["Allernova AR", "0-12 mois", "Hydrolysat poussé"], ["Novalac Amina", "0-12 mois", "Acides aminés"]]}, {"nom": "Nutramigen", "produits": [["Nutramigen 1 LGG", "0-6 mois", "Hydrolysat poussé"], ["Nutramigen 2 LGG", "6-12 mois", "Hydrolysat poussé"], ["Nutramigen Puramino", "0-12 mois", "Acides aminés"]]}, {"nom": "Nutriben APLV", "produits": [["Nutriben APLV", "0-12 mois", "Hydrolysat poussé"]]}, {"nom": "Pepticate", "produits": [["Pepticate", "0-12 mois", "Hydrolysat poussé"], ["Pepticate Syneo", "0-12 mois", "Hydrolysat poussé"]]}]}];
+
+  var PDV = [
+    { nom: "Pharmacie du Marché", adr: "12 place du Marché", ville: "Ambérieu-en-Bugey",
+      d: 340, tel: "04 74 38 02 26", h: "Lun-Sam 8h30-19h30", ref: true },
+    { nom: "Pharmacie des Tilleuls", adr: "8 avenue des Tilleuls", ville: "Ambérieu-en-Bugey",
+      d: 720, tel: "04 74 38 11 04", h: "Lun-Ven 9h-19h · Sam 9h-12h30", ref: true },
+    { nom: "Parapharmacie Bellevue", adr: "3 rue Bellevue", ville: "Ambérieu-en-Bugey",
+      d: 1150, tel: "04 74 46 81 46", h: "Lun-Sam 9h30-19h", ref: false },
+    { nom: "Pharmacie de la Gare", adr: "45 avenue Roger Salengro", ville: "Ambérieu-en-Bugey",
+      d: 1900, tel: "04 74 35 04 15", h: "Lun-Sam 8h-20h", ref: true }
+  ];
+
+  /* Equivalences reprises telles quelles de la Societe Francaise de Pediatrie. */
+  var EQUIV = {
+    "Gallia|Calisma 1": [["Guigoz","Ultima 1"],["Modilac","Doucéa 1"],["Nutriben","Innova 1"],["Novalac","Novalac 1"]],
+    "Gallia|Calisma 2": [["Guigoz","Ultima 2"],["Nutriben","Innova 2"],["Blédilait","Blédilait 2"],["Modilac","Doucéa 2"]]
+  };
+
+  var MANQUES = [
+    { nb: 14, marque: "Novalac", produit: "AR Plus 2" },
+    { nb: 9, marque: "Modilac", produit: "Expert Riz 1" },
+    { nb: 6, marque: "Nutramigen", produit: "Nutramigen 1 LGG" }
+  ];
+
+  var OFFICINE = { nom: "Pharmacie du Marché", adresse: "12 place du Marché, 01500 Ambérieu-en-Bugey",
+    tel: "04 74 38 02 26", finess: "010002285" };
+
+  var MARQUES = [];
+  FAMILLES.forEach(function (f) { f.marques.forEach(function (m) { MARQUES.push(m); }); });
+
+  var decl = {};
+  MARQUES.forEach(function (m) { decl[m.nom] = { coches: {}, nb: 0, absente: false }; });
+  [["Gallia",["Calisma 1","Calisma 2","Galliagest Premium 1"]],
+   ["Picot",["Nutrition Quotidienne 1","Nutrition Quotidienne 2"]],
+   ["Guigoz",["Optipro 1","Optipro 2","Expert AR 1"]],
+   ["Physiolac",["Physiolac 1"]]].forEach(function (p) {
+    var e = decl[p[0]]; if (!e) return;
+    p[1].forEach(function (n) { e.coches[n] = true; e.nb++; });
+  });
+
+  var S = {
+    vue: "role", role: null,
+    // Un enfant = un prenom (facultatif tant qu'il est seul) et ses laits.
+    // Tant qu'il n'y en a qu'un, on ne demande aucun prenom : c'est une
+    // donnee de mineur qu'on evite de collecter sans raison.
+    enfants: [],
+    enfantActif: 0,
+    compte: null,
+    marqueOuverte: null, lait: null,
+    pdv: null, rayon: 3000, filtre: "", sombre: null
+  };
+
+  function totalLaits() {
+    return S.enfants.reduce(function (n, e) { return n + e.laits.length; }, 0);
+  }
+  function plusieursEnfants() { return S.enfants.length > 1; }
+
+  var $e = document.getElementById("ecran");
+  var $b = document.getElementById("bas");
+
+  function $(i) { return document.getElementById(i); }
+  function ech(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function dist(m) { return m < 1000 ? m + " m" : (m/1000).toFixed(1).replace(".", ",") + " km"; }
+  function ini(s) { return s.slice(0,2).toUpperCase(); }
+  function aplatir(s) {
+    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
+
+  var SOLEIL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  var LUNE = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+
+  function lireT() { try { return localStorage.getItem("bibe-theme"); } catch (e) { return null; } }
+  function ecrireT(v) { try { localStorage.setItem("bibe-theme", v); } catch (e) {} }
+  function appliquerT() { document.documentElement.dataset.theme = S.sombre ? "dark" : "light"; }
+  S.sombre = lireT() ? lireT() === "dark"
+    : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  appliquerT();
+
+  function haut(titre, versArriere) {
+    // L'etiquette de role est un bouton, dans les deux branches : un clic de
+    // travers a l'ouverture ne doit pas enfermer dans le mauvais parcours.
+    var etiquette = S.role
+      ? '<button class="role-tag" data-role-reset="1" title="Changer de profil">' +
+        (S.role === "pro" ? "Point de vente" : "Parent") + " ⌄</button>"
+      : "";
+    var g = versArriere
+      ? '<button class="retour" data-va="' + versArriere + '">← ' + ech(titre) + "</button>"
+      : '<span class="logo">BIBE</span>' + etiquette;
+    return '<div class="haut">' + g + '<span class="haut-fin">' +
+      (versArriere ? etiquette : "") +
+      '<button class="rond" id="theme" aria-label="Changer de thème">' +
+      (S.sombre ? SOLEIL : LUNE) + "</button></span></div>";
+  }
+
+  function traitees() { return MARQUES.filter(function (m) { var e = decl[m.nom]; return e.absente || e.nb > 0; }).length; }
+  function totalRefs() { return MARQUES.reduce(function (t, m) { return t + decl[m.nom].nb; }, 0); }
+  function mqRetenues() { return MARQUES.filter(function (m) { return decl[m.nom].nb > 0; }).length; }
+
+  var V = {};
+
+  /* ===================== Choix du role ===================== */
+
+  V.role = function () {
+    return haut() + "<h1>Vous êtes…</h1>" +
+      '<p class="chapo">Cette question ne vous sera posée qu\'une fois.</p>' +
+      '<button class="role-carte" data-role="parent"><span class="t">Un parent</span>' +
+      '<span class="d">Trouver où acheter le lait de votre bébé, près de vous.</span></button>' +
+      '<button class="role-carte" data-role="pro"><span class="t">Un point de vente</span>' +
+      '<span class="d">Pharmacie ou parapharmacie : déclarez les laits que vous référencez ' +
+      "et apparaissez auprès des parents qui les cherchent.</span></button>" +
+      '<div class="aide">BIBE est gratuit dans les deux cas. Vous pourrez changer ' +
+      "depuis les réglages.</div>";
+  };
+
+  /* ===================== Parcours parent ===================== */
+
+  V.accueil = function () {
+    var h = haut() + "<h1>Où trouver le lait de votre bébé ?</h1>";
+    if (totalLaits()) {
+      h += '<p class="chapo">Touchez un lait pour lancer la recherche.</p>';
+      S.enfants.forEach(function (en, ie) {
+        if (!en.laits.length) return;
+        if (plusieursEnfants()) {
+          h += '<p class="famille">' + ech(en.prenom || "Sans prénom") + "</p>";
+        }
+        en.laits.forEach(function (l, il) {
+          h += '<button class="carte-lait" data-lait="' + ie + ":" + il + '">' +
+            '<span class="vignette">' + ech(ini(l.marque)) + "</span>" +
+            '<span><span class="qui">' +
+            (plusieursEnfants() ? "Le lait de " + ech(en.prenom) : "Le lait de votre bébé") +
+            "</span><br>" +
+            '<span class="quoi">' + ech(l.produit) + "</span><br>" +
+            '<span class="marque">' + ech(l.marque) + "</span></span></button>";
+        });
+      });
+      h += '<button class="cta-2" data-va="marques">Chercher un autre lait</button>';
+    } else {
+      h += '<p class="chapo">Cherchez le lait de votre bébé et voyez qui le référence ' +
+        "autour de vous.</p>";
+      h += '<button class="cta" data-va="marques">Chercher un lait</button>';
+      h += '<div class="carte-lait fantome" style="margin-top:20px" aria-hidden="true">' +
+        '<span class="vignette">··</span>' +
+        '<span><span class="qui">Le lait de votre bébé</span><br>' +
+        '<span class="quoi">Calisma 2</span><br><span class="marque">Gallia</span></span></div>' +
+        '<p class="legende-fantome">Avec un compte, votre lait s\'affiche ici ' +
+        "et se relance en une touche.</p>";
+    }
+    h += '<div class="aide">BIBE indique les points de vente qui référencent ce lait. ' +
+      "Le stock n'est pas connu en temps réel : un appel reste le moyen le plus sûr " +
+      "de vérifier avant de se déplacer.</div>";
+
+    // Proposition du compte en bas de l'accueil : c'est ici que le parent
+    // comprend a quoi il sert. Jamais avant la recherche, qui doit rester
+    // accessible sans rien creer.
+    if (!S.compte) {
+      // Ne lister que ce que le mode invite ne sait PAS faire : memoriser un
+      // lait fonctionne deja sans compte, l'annoncer comme un avantage sonne
+      // faux et decredibilise le reste.
+      h += '<div class="encart-compte"><p class="encart-titre">Ce qu\'un compte ' +
+        "gratuit ajoute</p>" +
+        '<ul class="encart-liste">' +
+        "<li><b>Enregistrer le lait de votre bébé</b> et le relancer en une touche, " +
+        "au lieu de le rechercher à chaque fois.</li>" +
+        "<li><b>Un lait par enfant</b>, si vous en avez plusieurs.</li>" +
+        "<li><b>Être prévenu</b> si l'un de vos laits est rappelé ou devient " +
+        "introuvable près de chez vous.</li>" +
+        "<li><b>Partager vos laits</b> avec l'autre parent, sur son téléphone.</li>" +
+        "</ul>" +
+        '<button class="cta vert" data-va="compte">Créer mon compte gratuit</button>' +
+        '<p class="encart-pied">Sans compte, vous pouvez chercher autant que vous ' +
+        "voulez — mais rien n'est conservé d'une fois sur l'autre.</p></div>";
+    }
+    return h;
+  };
+
+  V.marques = function () {
+    var pro = S.role === "pro";
+    var h = haut("Retour", pro ? "proBord" : "accueil");
+    h += "<h1>" + (pro ? "Vos références" : "Quel lait ?") + "</h1>";
+    if (pro) {
+      h += '<p class="chapo">Ouvrez les marques que vous travaillez et cochez vos références.</p>' +
+        '<div class="avancement"><div class="jauge"><div class="jauge-remplie" style="width:' +
+        (traitees() / MARQUES.length * 100) + '%"></div></div><span class="compteur">' +
+        traitees() + " / " + MARQUES.length + "</span></div>";
+    }
+    h += '<input class="recherche" id="filtre" placeholder="Marque, lait, ou besoin (AR, bio, chèvre…)" value="' +
+      ech(S.filtre) + '">';
+
+    var q = aplatir(S.filtre.trim()), vide = true;
+    FAMILLES.forEach(function (f) {
+      var ms = f.marques.filter(function (m) {
+        if (!q) return true;
+        if (aplatir(f.libelle).indexOf(q) >= 0) return true;
+        if (aplatir(m.nom).indexOf(q) >= 0) return true;
+        return m.produits.some(function (p) {
+          return aplatir(p[0]).indexOf(q) >= 0 || aplatir(p[2]).indexOf(q) >= 0;
+        });
+      });
+      if (!ms.length) return;
+      vide = false;
+      h += '<p class="famille">' + ech(f.libelle) + '</p><div class="grille">';
+      ms.forEach(function (m) {
+        var e = decl[m.nom], et = "", lib = m.produits.length + " réf.";
+        if (pro) {
+          if (e.absente) { et = "absente"; lib = "non travaillée"; }
+          else if (e.nb > 0) { et = "fait"; lib = e.nb + " réf. cochées"; }
+        }
+        h += '<button class="marque-carte" data-etat="' + et + '" data-marque="' + ech(m.nom) + '">' +
+          ech(m.nom) + '<span class="nb">' + lib + "</span></button>";
+      });
+      h += "</div>";
+    });
+    if (vide) h += '<div class="aide">Aucun résultat. Essayez le nom de la marque seule.</div>';
+    return h;
+  };
+
+  V.produits = function () {
+    var m = MARQUES.filter(function (x) { return x.nom === S.marqueOuverte; })[0];
+    var pro = S.role === "pro", e = decl[m.nom];
+    var h = haut("Marques", "marques") + "<h1>" + ech(m.nom) + "</h1>" +
+      '<p class="chapo">' + (pro ? "Cochez ce que vous avez habituellement en rayon."
+        : "Choisissez la référence exacte.") + "</p>";
+
+    ["0-6 mois","6-12 mois","0-12 mois","12 mois et +"].forEach(function (age) {
+      var g = m.produits.filter(function (p) { return p[1] === age; });
+      if (!g.length) return;
+      h += '<p class="groupe">' + age + "</p>";
+      g.forEach(function (p) {
+        h += '<button class="ligne" data-produit="' + ech(p[0]) + '"' +
+          (pro ? ' aria-pressed="' + (e.coches[p[0]] ? "true" : "false") + '"' : "") + ">" +
+          (pro ? '<span class="case">✓</span>' : "") +
+          '<span class="nom">' + ech(p[0]) + "</span>" +
+          (p[2] ? '<span class="spec">' + ech(p[2]) + "</span>" : "") + "</button>";
+      });
+    });
+
+    if (pro) {
+      h += '<button class="cta vert" data-va="marques">C\'est bon pour cette marque</button>' +
+        '<button class="cta-2" id="absente">' +
+        (e.absente ? "Finalement, je travaille cette marque" : "Je ne travaille pas cette marque") +
+        "</button>";
+    }
+    return h;
+  };
+
+  V.resultats = function () {
+    var l = S.lait, liste = PDV.filter(function (p) { return p.d <= S.rayon; });
+    var h = haut("Retour", "accueil") +
+      '<div class="bandeau-lait"><div class="m">' + ech(l.marque) +
+      '</div><div class="p">' + ech(l.produit) + "</div></div>";
+    if (!liste.length) {
+      return h + '<div class="vide"><div class="vide-rond">· · ·</div>' +
+        "<h2>Personne ne le référence ici</h2>" +
+        '<p class="chapo">Aucun point de vente déclaré dans ce rayon.</p></div>' +
+        '<button class="cta" id="elargir">Élargir à 10 km</button>' +
+        '<button class="cta-2" data-va="equivalents">Voir les équivalents reconnus</button>';
+    }
+    var refs = liste.filter(function (p) { return p.ref; }).length;
+    h += "<h2>" + refs + " point" + (refs > 1 ? "s" : "") + " de vente le référence</h2>" +
+      '<p class="chapo">Dans un rayon de ' + dist(S.rayon) + ".</p>" +
+      '<div class="avert">Le stock n\'est pas connu en temps réel. Appelez avant de vous déplacer.</div>';
+    liste.forEach(function (p, i) {
+      h += '<button class="pdv" data-pdv="' + i + '"><span class="pdv-haut"><span>' +
+        '<span class="pdv-nom">' + ech(p.nom) + '</span><br><span class="pdv-adr">' +
+        ech(p.adr) + " · " + ech(p.ville) + '</span></span><span class="pdv-dist">' +
+        dist(p.d) + "</span></span>" +
+        (p.ref ? '<span class="etiquette ok">✓ Référence ce lait</span>'
+               : '<span class="etiquette inconnu">Référencement non déclaré</span>') + "</button>";
+    });
+    h += '<button class="cta-2" data-va="equivalents">Voir les équivalents de ce lait</button>';
+    // Le bon moment pour proposer le compte : le parent vient de trouver son
+    // lait, il sait maintenant ce qu'il aura a refaire la prochaine fois.
+    if (!S.compte) {
+      h += '<div class="aide">Vous devrez rechercher ce lait à chaque fois. ' +
+        "<b>Avec un compte gratuit</b>, il vous attend sur l'accueil." +
+        '<button class="cta vert" data-va="compte">Enregistrer ce lait</button></div>';
+    }
+    return h;
+  };
+
+  V.fiche = function () {
+    var p = PDV[S.pdv];
+    return haut("Résultats", "resultats") + "<h1>" + ech(p.nom) + "</h1>" +
+      '<p class="chapo">' + ech(p.adr) + " · " + ech(p.ville) + "</p>" +
+      (p.ref ? '<span class="etiquette ok">✓ Référence ' + ech(S.lait.produit) + "</span>"
+             : '<span class="etiquette inconnu">Référencement non déclaré</span>') +
+      '<div class="fiche-actions"><button class="act-1" id="appeler">Appeler</button>' +
+      '<button class="act-2" id="yaller">Y aller</button></div>' +
+      '<div class="infos"><div class="info"><span class="k">Distance</span><span>' + dist(p.d) + "</span></div>" +
+      '<div class="info"><span class="k">Téléphone</span><span>' + ech(p.tel) + "</span></div>" +
+      '<div class="info"><span class="k">Horaires</span><span>' + ech(p.h) + "</span></div></div>";
+  };
+
+  V.navigation = function () {
+    var p = PDV[S.pdv], q = encodeURIComponent(p.nom + ", " + p.adr + ", " + p.ville);
+    return haut("Fiche", "fiche") + "<h1>Y aller</h1>" +
+      '<p class="chapo">' + ech(p.nom) + " · " + dist(p.d) + "</p>" +
+      '<button class="ligne" data-nav="https://waze.com/ul?q=' + q + '&navigate=yes"><span class="nom">Waze</span></button>' +
+      '<button class="ligne" data-nav="https://www.google.com/maps/dir/?api=1&destination=' + q + '"><span class="nom">Google Maps</span></button>' +
+      '<button class="ligne" data-nav="https://maps.apple.com/?daddr=' + q + '"><span class="nom">Plans</span></button>' +
+      '<div class="aide">Sur un téléphone, l\'application choisie s\'ouvre directement ' +
+      "avec l'itinéraire.</div>" +
+      '<button class="cta-2" data-va="retour">J\'y suis allé, dire si je l\'ai trouvé</button>';
+  };
+
+  V.retour = function () {
+    var p = PDV[S.pdv];
+    return haut("Retour", "fiche") + '<div class="question-bloc"><h1>Ils l\'avaient ?</h1>' +
+      '<p class="chapo">' + ech(p.nom) + " · " + ech(S.lait.produit) + "</p>" +
+      '<div class="reponses"><button class="rep oui" data-rep="1">Oui</button>' +
+      '<button class="rep non" data-rep="0">Non</button></div></div>' +
+      '<button class="cta-2" data-va="resultats">Passer</button>';
+  };
+
+  V.merci = function () {
+    return haut("Retour", "resultats") + '<div class="question-bloc">' +
+      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
+      "<h1>Merci</h1><p class=\"chapo\">Votre retour aide les parents qui chercheront " +
+      "ce lait après vous.</p></div>" +
+      '<button class="cta" data-va="accueil">Revenir à l\'accueil</button>';
+  };
+
+  V.equivalents = function () {
+    var l = S.lait, eq = l ? EQUIV[l.marque + "|" + l.produit] : null;
+    var h = haut("Retour", l ? "resultats" : "accueil") + "<h1>Équivalents reconnus</h1>";
+    if (l) h += '<p class="chapo">À la place de ' + ech(l.marque) + " " + ech(l.produit) + ".</p>";
+    if (eq) {
+      eq.forEach(function (x) {
+        h += '<button class="equiv" data-eq="' + ech(x[0]) + "|" + ech(x[1]) + '">' +
+          '<span class="em">' + ech(x[0]) + '</span><br><span class="ep">' + ech(x[1]) + "</span></button>";
+      });
+    } else {
+      h += '<div class="aide">Aucune équivalence publiée pour cette référence. ' +
+        "Votre pharmacien reste le mieux placé pour vous conseiller.</div>";
+    }
+    h += '<div class="source"><b>Source :</b> Société Française de Pédiatrie, ' +
+      "« Alternatives aux préparations infantiles retirées du marché ». BIBE ne formule " +
+      "aucune recommandation médicale et ne construit aucune équivalence de son propre chef.</div>";
+    return h;
+  };
+
+  V.mesLaits = function () {
+    var h = haut() + "<h1>Mes laits</h1>";
+
+    if (!S.compte) {
+      return h + '<p class="chapo">Enregistrer un lait demande un compte gratuit. ' +
+        "C'est ce qui permet de le retrouver, d'en avoir un par enfant, et d'être " +
+        "prévenu s'il est rappelé.</p>" +
+        '<div class="carte-lait fantome" aria-hidden="true"><span class="vignette">··</span>' +
+        '<span><span class="qui">Le lait de votre bébé</span><br>' +
+        '<span class="quoi">Calisma 2</span><br><span class="marque">Gallia</span></span></div>' +
+        '<p class="legende-fantome">Exemple — vos laits s\'afficheront ici.</p>' +
+        '<button class="cta vert" data-va="compte">Créer mon compte gratuit</button>' +
+        '<button class="cta-2" data-va="marques">Chercher sans compte</button>';
+    }
+
+    if (!totalLaits()) {
+      return h + '<p class="chapo">Aucun lait enregistré pour l\'instant.</p>' +
+        '<button class="cta" data-va="marques">Choisir mon lait</button>';
+    }
+
+    h += '<p class="chapo">' + (S.compte
+      ? "Synchronisés sur votre compte " + ech(S.compte.email) + "."
+      : "Enregistrés sur cet appareil. Aucun compte, aucune donnée envoyée.") + "</p>";
+
+    S.enfants.forEach(function (en, ie) {
+      if (plusieursEnfants()) {
+        h += '<p class="famille">' + ech(en.prenom || "Sans prénom") + "</p>";
+      }
+      en.laits.forEach(function (l, il) {
+        h += '<button class="carte-lait" data-lait="' + ie + ":" + il + '">' +
+          '<span class="vignette">' + ech(ini(l.marque)) + "</span>" +
+          '<span><span class="qui">' +
+          (plusieursEnfants() ? ech(en.prenom) : "Le lait de votre bébé") +
+          '</span><br><span class="quoi">' + ech(l.produit) +
+          '</span><br><span class="marque">' + ech(l.marque) + "</span></span></button>";
+      });
+      if (plusieursEnfants()) {
+        h += '<button class="cta-2" data-lait-pour="' + ie + '">Ajouter un lait pour ' +
+          ech(en.prenom) + "</button>";
+      }
+    });
+
+    if (!plusieursEnfants()) {
+      h += '<button class="cta-2" data-va="marques">Ajouter un lait</button>';
+    }
+    h += '<button class="cta-2" data-va="nouvelEnfant">Ajouter un enfant</button>';
+
+    if (!S.compte) {
+      h += '<div class="aide"><b>Un compte gratuit</b> vous prévient en cas de rappel, ' +
+        "partage vos laits avec l'autre parent et les conserve si vous changez de " +
+        "téléphone. Il n'est jamais obligatoire." +
+        '<button class="cta vert" data-va="compte">Créer un compte gratuit</button></div>';
+    }
+    return h;
+  };
+
+  V.nouvelEnfant = function () {
+    var premier = S.enfants.length === 1 && !S.enfants[0].prenom;
+    var h = haut("Mes laits", "mesLaits") + "<h1>Ajouter un enfant</h1>";
+    h += '<p class="chapo">' + (premier
+      ? "Pour distinguer leurs laits, donnez un prénom à chacun."
+      : "Le prénom sert uniquement à distinguer les listes de laits.") + "</p>";
+    if (premier) {
+      h += '<p class="groupe">Votre premier enfant</p>' +
+        '<input class="champ" id="prenom-1" placeholder="Prénom" value="">';
+      h += '<p class="groupe">Le nouveau</p>';
+    }
+    h += '<input class="champ" id="prenom-2" placeholder="Prénom">';
+    h += '<button class="cta vert" id="creer-enfant">Ajouter</button>';
+    h += '<div class="aide">Ces prénoms restent sur votre téléphone tant que vous ' +
+      "n'avez pas de compte. Vous pouvez mettre un surnom.</div>";
+    return h;
+  };
+
+  V.compte = function () {
+    return haut("Mes laits", "mesLaits") + "<h1>Compte gratuit</h1>" +
+      '<p class="chapo">Pour être prévenu d\'un rappel, partager vos laits avec ' +
+      "l'autre parent, et les retrouver en changeant de téléphone.</p>" +
+      '<input class="champ" id="mail-parent" type="email" placeholder="votre@email.fr" ' +
+      'value="parent@exemple.fr">' +
+      '<button class="cta vert" id="envoyer-code">Recevoir mon code</button>' +
+      '<div class="aide">Gratuit et sans engagement. Aucun mot de passe : ' +
+      "un code par email à chaque nouvelle connexion. Nous ne demandons jamais " +
+      "le nom ni la date de naissance de vos enfants.</div>";
+  };
+
+  V.compteCode = function () {
+    return haut("Retour", "compte") + "<h1>Votre code</h1>" +
+      '<p class="chapo">Envoyé à parent@exemple.fr.</p>' +
+      '<input class="champ code" maxlength="6" value="204517" inputmode="numeric">' +
+      '<button class="cta vert" id="valider-compte">Entrer</button>' +
+      '<div class="aide">Code pré-rempli pour la démonstration.</div>';
+  };
+
+  V.compteOk = function () {
+    return haut("Mes laits", "mesLaits") + '<div class="question-bloc">' +
+      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
+      "<h1>Compte créé</h1>" +
+      '<p class="chapo">' + (totalLaits()
+        ? "Votre recherche est enregistrée : ce lait vous attend désormais sur l'accueil."
+        : "Les laits que vous chercherez seront désormais conservés.") +
+      " Vous serez prévenu si l'un d'eux est rappelé.</p></div>" +
+      '<button class="cta vert" data-va="mesLaits">Revenir à mes laits</button>';
+  };
+
+  V.reglages = function () {
+    return haut() + "<h1>Réglages</h1>" +
+      '<button class="reglage" id="theme2"><span>Apparence</span><span class="val">' +
+      (S.sombre ? "Sombre" : "Clair") + "</span></button>" +
+      '<div class="reglage"><span>Rayon par défaut</span><span class="val">' + dist(S.rayon) + "</span></div>" +
+      '<button class="reglage" data-va="' + (S.compte ? "mesLaits" : "compte") + '">' +
+      "<span>Compte</span><span class=\"val\">" +
+      (S.compte ? ech(S.compte.email) : "Invité — créer un compte") + "</span></button>" +
+      '<div class="reglage"><span>Enfants enregistrés</span><span class="val">' +
+      (S.enfants.length || "aucun") + "</span></div>" +
+      '<button class="reglage" data-role-reset="1"><span>Je suis…</span><span class="val">' +
+      (S.role === "pro" ? "Point de vente" : "Parent") + "</span></button>" +
+      '<div class="aide">En mode invité, vos laits restent sur votre téléphone. ' +
+      "BIBE ne collecte ni votre position ni vos recherches.</div>";
+  };
+
+  /* ===================== Parcours point de vente ===================== */
+
+  V.proConnexion = function () {
+    return haut() + "<h1>Votre espace</h1>" +
+      '<p class="chapo">Indiquez l\'adresse de votre établissement, nous vous envoyons ' +
+      "un code. Aucun mot de passe à retenir.</p>" +
+      '<input class="champ" type="email" value="contact@pharmacie-du-marche.fr">' +
+      '<button class="cta vert" data-va="proCode">Recevoir mon code</button>' +
+      '<div class="aide">BIBE est gratuit pour les pharmacies et parapharmacies. ' +
+      "Déclarer vos références prend moins de deux minutes.</div>";
+  };
+
+  V.proCode = function () {
+    return haut("Retour", "proConnexion") + "<h1>Votre code</h1>" +
+      '<p class="chapo">Envoyé à contact@pharmacie-du-marche.fr.</p>' +
+      '<input class="champ code" maxlength="6" value="481902" inputmode="numeric">' +
+      '<button class="cta vert" data-va="proBord">Entrer</button>' +
+      '<div class="aide">Code pré-rempli pour la démonstration.</div>';
+  };
+
+  V.proBord = function () {
+    var h = haut() + "<h1>" + ech(OFFICINE.nom) + "</h1>";
+    h += '<div class="bloc"><p class="bloc-titre">Vos références déclarées</p>' +
+      '<div class="chiffres"><div><span class="v">' + mqRetenues() + '</span><span class="l">marques</span></div>' +
+      '<div><span class="v">' + totalRefs() + '</span><span class="l">références</span></div></div>' +
+      '<p class="maj">Mis à jour le 14 février 2026.</p>' +
+      '<button class="cta vert" data-va="marques">Mettre à jour</button></div>';
+
+    h += '<div class="bloc manques"><p class="bloc-titre">Cherchés près de chez vous, non trouvés</p>';
+    MANQUES.forEach(function (m) {
+      h += '<div class="manque-ligne"><span class="manque-nb">' + m.nb + "</span><span>" +
+        '<span class="manque-lait">' + ech(m.produit) + '</span><br><span class="manque-marque">' +
+        ech(m.marque) + "</span></span></div>";
+    });
+    h += '<div class="encart-vente">Ces parents ont cherché ces références à moins d\'un ' +
+      "kilomètre ce mois-ci, sans trouver personne qui les déclare. Si vous les avez en " +
+      "rayon, un clic suffit à apparaître.</div></div>";
+
+    h += '<div class="bloc"><p class="bloc-titre">Ce mois-ci</p><div class="stats">' +
+      '<div class="stat"><span class="v">218</span><span class="l">apparitions</span></div>' +
+      '<div class="stat"><span class="v">47</span><span class="l">fiches ouvertes</span></div>' +
+      '<div class="stat"><span class="v">31</span><span class="l">appels lancés</span></div>' +
+      '<div class="stat"><span class="v">26</span><span class="l">itinéraires</span></div></div></div>';
+
+    h += '<div class="bloc"><p class="bloc-titre">Votre fiche</p>' +
+      '<div class="fiche-ligne"><span class="k">Adresse</span><span>' + ech(OFFICINE.adresse) + "</span></div>" +
+      '<div class="fiche-ligne"><span class="k">Téléphone</span><span>' + ech(OFFICINE.tel) + "</span></div>" +
+      '<div class="fiche-ligne"><span class="k">N° FINESS</span><span>' + ech(OFFICINE.finess) + "</span></div>" +
+      '<div class="aide">Ces informations proviennent du répertoire public FINESS.</div></div>';
+
+    h += '<button class="cta-2" data-va="proRelance">Voir la relance à six mois</button>';
+    return h;
+  };
+
+  V.proRelance = function () {
+    var h = haut("Mon espace", "proBord") + '<div class="question-bloc">' +
+      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
+      "<h1>Rien n'a changé ?</h1>" +
+      '<p class="chapo">Voici ce que vous déclariez en février. Parcourez la liste : ' +
+      "si elle est toujours juste, un seul bouton suffit.</p></div>";
+    MARQUES.forEach(function (m) {
+      var e = decl[m.nom];
+      if (!e.nb) return;
+      var refs = m.produits.filter(function (p) { return e.coches[p[0]]; })
+        .map(function (p) { return '<span class="puce">' + ech(p[0]) + "</span>"; }).join("");
+      h += '<div class="recap-marque"><div class="recap-nom">' + ech(m.nom) +
+        '<span class="recap-nb">' + e.nb + " réf.</span></div>" +
+        '<div class="recap-refs">' + refs + "</div></div>";
+    });
+    h += '<button class="cta vert" data-va="proConfirme">Oui, toujours à jour</button>' +
+      '<button class="cta-2" data-va="marques">Non, je corrige</button>';
+    return h;
+  };
+
+  V.proConfirme = function () {
+    return haut("Retour", "proBord") + '<div class="question-bloc">' +
+      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
+      "<h1>Merci</h1><p class=\"chapo\">Votre déclaration est confirmée pour six mois de plus.</p></div>" +
+      '<button class="cta vert" data-va="proBord">Revenir à mon espace</button>';
+  };
+
+  /* ===================== Navigation ===================== */
+
+  var ONGLETS_PARENT = [["accueil","Chercher"],["mesLaits","Mes laits"],["reglages","Réglages"]];
+  var ONGLETS_PRO = [["proBord","Mon espace"],["marques","Mes références"],["reglages","Réglages"]];
+
+  function rendreBas() {
+    var ong = S.role === "pro" ? ONGLETS_PRO : ONGLETS_PARENT;
+    var visibles = {};
+    ong.forEach(function (o) { visibles[o[0]] = 1; });
+    $b.style.display = (S.role && visibles[S.vue]) ? "flex" : "none";
+    $b.innerHTML = ong.map(function (o) {
+      return '<button class="onglet" data-va="' + o[0] + '" aria-current="' +
+        (S.vue === o[0] ? "true" : "false") + '">' + o[1] + "</button>";
+    }).join("");
+  }
+
+  function rendre() {
+    $e.innerHTML = V[S.vue]();
+    $e.scrollTop = 0;
+    rendreBas();
+    brancher();
+  }
+
+  function aller(v) { S.vue = v; rendre(); }
+
+  function memoriser(l) {
+    // Sans compte, la recherche reste libre mais ne laisse aucune trace :
+    // memoriser un lait est precisement ce que le compte apporte.
+    if (!S.compte) return;
+    if (!S.enfants.length) S.enfants.push({ prenom: "", laits: [] });
+    var e = S.enfants[S.enfantActif] || S.enfants[0];
+    var deja = e.laits.some(function (x) { return x.marque === l.marque && x.produit === l.produit; });
+    if (!deja) e.laits.push({ marque: l.marque, produit: l.produit });
+  }
+
+  function basculer() { S.sombre = !S.sombre; ecrireT(S.sombre ? "dark" : "light"); appliquerT(); rendre(); }
+
+  function brancher() {
+    [$e, $b].forEach(function (z) {
+      z.querySelectorAll("[data-va]").forEach(function (b) {
+        b.addEventListener("click", function () { aller(b.dataset.va); });
+      });
+    });
+
+    var t1 = $("theme"); if (t1) t1.addEventListener("click", basculer);
+    var t2 = $("theme2"); if (t2) t2.addEventListener("click", basculer);
+
+    $e.querySelectorAll("[data-role]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        S.role = b.dataset.role;
+        aller(S.role === "pro" ? "proConnexion" : "accueil");
+      });
+    });
+
+    $e.querySelectorAll("[data-role-reset]").forEach(function (b) {
+      b.addEventListener("click", function () { S.role = null; aller("role"); });
+    });
+
+    $e.querySelectorAll("[data-lait]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var p = b.dataset.lait.split(":");
+        S.enfantActif = +p[0];
+        S.lait = S.enfants[+p[0]].laits[+p[1]];
+        aller("resultats");
+      });
+    });
+
+    $e.querySelectorAll("[data-lait-pour]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        S.enfantActif = +b.dataset.laitPour;
+        aller("marques");
+      });
+    });
+
+    var creer = $("creer-enfant");
+    if (creer) creer.addEventListener("click", function () {
+      var p1 = $("prenom-1"), p2 = $("prenom-2");
+      if (p1 && p1.value.trim()) S.enfants[0].prenom = p1.value.trim();
+      var nom = p2 && p2.value.trim();
+      if (!nom) { p2.focus(); return; }
+      S.enfants.push({ prenom: nom, laits: [] });
+      S.enfantActif = S.enfants.length - 1;
+      aller("marques");
+    });
+
+    // L'adresse se lit sur l'ecran ou le champ existe encore, pas au suivant.
+    var ec = $("envoyer-code");
+    if (ec) ec.addEventListener("click", function () {
+      var m = $("mail-parent");
+      S.mailSaisi = (m && m.value.trim()) || "parent@exemple.fr";
+      aller("compteCode");
+    });
+
+    var vc = $("valider-compte");
+    if (vc) vc.addEventListener("click", function () {
+      S.compte = { email: S.mailSaisi || "parent@exemple.fr" };
+      // Le lait qu'on venait de chercher est retenu dans la foulee : le parent
+      // ne refait pas la recherche qu'il vient de faire.
+      if (S.lait) memoriser(S.lait);
+      aller("compteOk");
+    });
+
+    $e.querySelectorAll("[data-marque]").forEach(function (b) {
+      b.addEventListener("click", function () { S.marqueOuverte = b.dataset.marque; aller("produits"); });
+    });
+
+    $e.querySelectorAll("[data-produit]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var n = b.dataset.produit;
+        if (S.role === "pro") {
+          var e = decl[S.marqueOuverte];
+          if (e.coches[n]) { delete e.coches[n]; e.nb--; }
+          else { e.coches[n] = true; e.nb++; e.absente = false;
+            var a = $("absente"); if (a) a.textContent = "Je ne travaille pas cette marque"; }
+          b.setAttribute("aria-pressed", e.coches[n] ? "true" : "false");
+        } else {
+          S.lait = { marque: S.marqueOuverte, produit: n };
+          memoriser(S.lait);
+          aller("resultats");
+        }
+      });
+    });
+
+    var abs = $("absente");
+    if (abs) abs.addEventListener("click", function () {
+      var e = decl[S.marqueOuverte];
+      e.absente = !e.absente;
+      if (e.absente) { e.coches = {}; e.nb = 0; aller("marques"); } else { rendre(); }
+    });
+
+    $e.querySelectorAll("[data-pdv]").forEach(function (b) {
+      b.addEventListener("click", function () { S.pdv = +b.dataset.pdv; aller("fiche"); });
+    });
+
+    $e.querySelectorAll("[data-eq]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var p = b.dataset.eq.split("|");
+        S.lait = { marque: p[0], produit: p[1] };
+        aller("resultats");
+      });
+    });
+
+    $e.querySelectorAll("[data-rep]").forEach(function (b) {
+      b.addEventListener("click", function () { aller("merci"); });
+    });
+
+    $e.querySelectorAll("[data-nav]").forEach(function (b) {
+      b.addEventListener("click", function () { window.open(b.dataset.nav, "_blank", "noopener"); });
+    });
+
+    var ap = $("appeler"); if (ap) ap.addEventListener("click", function () { aller("retour"); });
+    var ya = $("yaller"); if (ya) ya.addEventListener("click", function () { aller("navigation"); });
+    var el = $("elargir"); if (el) el.addEventListener("click", function () { S.rayon = 10000; rendre(); });
+
+    var f = $("filtre");
+    if (f) f.addEventListener("input", function () {
+      S.filtre = f.value;
+      var pos = f.selectionStart;
+      rendre();
+      var nf = $("filtre");
+      if (nf) { nf.focus(); nf.setSelectionRange(pos, pos); }
+    });
+  }
+
+  /* ---------- Ouverture ---------- */
+
+  var splash = $("splash");
+  function fermerSplash() {
+    if (!splash) return;
+    splash.style.display = "none";
+    splash = null;
+  }
+  $("splash").addEventListener("click", fermerSplash);
+  setTimeout(fermerSplash, 1900);
+
+  rendre();
+})();
+</script>
+
+<script>
+// Service worker : sert l'application hors connexion et recupere la derniere
+// version des qu'un reseau est disponible.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () { /* sans effet */ });
+  });
+}
+</script>
+</body>
+</html>
