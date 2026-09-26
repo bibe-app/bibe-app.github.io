@@ -1,10 +1,10 @@
 {
-  "version": "0.3.0",
+  "version": "0.3.1",
   "date": "2026-09-26",
-  "poids_index": 111659,
-  "md5_index": "e4f3d158",
-  "poids_donnees": 2199758,
-  "md5_donnees": "5b8ff858",
+  "poids_index": 126673,
+  "md5_index": "26f4cbbf",
+  "poids_donnees": 2450145,
+  "md5_donnees": "33e65e0b",
   "nb_images": 307,
   "poids_images": 1797554
 }
