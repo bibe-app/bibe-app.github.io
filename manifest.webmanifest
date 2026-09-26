@@ -1,7 +1,7 @@
 {
   "name": "BIBE",
   "short_name": "BIBE",
-  "description": "Trouvez le lait de votre bebe dans une pharmacie proche.",
+  "description": "Trouvez les pharmacies et parapharmacies autour de vous pour le lait de votre bébé.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

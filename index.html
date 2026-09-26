@@ -4,925 +4,1301 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BIBE</title>
-<meta name="description" content="Trouvez le lait de votre bebe dans une pharmacie proche.">
+<meta name="description" content="Trouvez les pharmacies et parapharmacies autour de vous pour le lait de votre bébé.">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0B7A52" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0C1310" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F2F5F1">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="BIBE">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
 <meta name="robots" content="noindex">
-<meta name="bibe-version" content="0.1.0">
+<meta name="bibe-version" content="0.3.0">
 </head>
 <body>
-
 <style>
   :root {
     --paper: #F2F5F1; --card: #FFFFFF; --sunk: #E9EEE8;
-    --ink: #14201B; --soft: #52625A; --faint: #849289;
+    --ink: #14201B; --soft: #52625A; --faint: #7A8A80;
     --rule: #DCE4DD; --firm: #C2CEC5;
-    --green: #0B7A52; --wash: #E0EFE7;
-    --corail: #C4462A; --corail-wash: #F8E7E2;
+    --green: #0B7A52; --wash: #E0EFE7; --on-green: #FFFFFF;
+    --corail: #B8421F; --corail-wash: #F8E7E2;
     --badge: #E9EEE8; --badge-sel: #C8E3D5;
-    --amber: #9A5B08; --hors: #0C1310;
-    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
-    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --amber: #8A5306; --amber-wash: #F6EAD8;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+    --sans: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #0C1310; --card: #141D18; --sunk: #101915;
-      --ink: #E3ECE6; --soft: #9FB1A7; --faint: #74857B;
-      --rule: #24302A; --firm: #35443C;
-      --green: #34C48A; --wash: #14301F;
+      --paper: #0C1310; --card: #151E19; --sunk: #101915;
+      --ink: #E3ECE6; --soft: #A3B4AA; --faint: #7D8E84;
+      --rule: #25312B; --firm: #37463E;
+      --green: #34C48A; --wash: #14301F; --on-green: #062416;
       --corail: #F08A6E; --corail-wash: #351B15;
-      --badge: #1E2A24; --badge-sel: #1F4231;
-      --amber: #DFA255; --hors: #050907;
+      --badge: #1F2B25; --badge-sel: #1F4231;
+      --amber: #E3A95E; --amber-wash: #302516;
     }
   }
   :root[data-theme="dark"] {
-    --paper: #0C1310; --card: #141D18; --sunk: #101915;
-    --ink: #E3ECE6; --soft: #9FB1A7; --faint: #74857B;
-    --rule: #24302A; --firm: #35443C;
-    --green: #34C48A; --wash: #14301F;
+    --paper: #0C1310; --card: #151E19; --sunk: #101915;
+    --ink: #E3ECE6; --soft: #A3B4AA; --faint: #7D8E84;
+    --rule: #25312B; --firm: #37463E;
+    --green: #34C48A; --wash: #14301F; --on-green: #062416;
     --corail: #F08A6E; --corail-wash: #351B15;
-    --badge: #1E2A24; --badge-sel: #1F4231;
-    --amber: #DFA255; --hors: #050907;
+    --badge: #1F2B25; --badge-sel: #1F4231;
+    --amber: #E3A95E; --amber-wash: #302516;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
   body {
-    margin: 0; background: var(--hors); color: var(--ink); font-family: var(--sans);
+    background: var(--paper); color: var(--ink); font-family: var(--sans);
     font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
-    display: flex; flex-direction: column; align-items: center;
-    padding: 22px 16px 36px; gap: 18px; min-height: 100vh;
+    overscroll-behavior: none;
   }
   button { font: inherit; color: inherit; cursor: pointer; }
   input { font: inherit; color: inherit; }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 
-  .tel {
-    width: 100%; max-width: 412px; background: var(--paper); border-radius: 26px;
-    overflow: hidden; position: relative; display: flex; flex-direction: column;
-    box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-    height: 790px; max-height: calc(100vh - 110px); min-height: 560px;
+  /* L'application occupe tout l'ecran. Les zones sures (encoche, ilot,
+     barre de geste, coins arrondis, paysage) sont reservees par des
+     marges calculees, jamais par des valeurs fixes. */
+  .app {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    background: var(--paper);
   }
-  .ecran { flex: 1; overflow-y: auto; padding: 0 18px 100px; }
-  .ecran::-webkit-scrollbar { width: 0; }
-
-  /* Sur un vrai telephone, et une fois l'application ajoutee a l'ecran
-     d'accueil, le cadre n'a plus de sens : on occupe tout l'ecran.
-     100dvh et non 100vh, sinon la barre d'adresse mobile rogne le bas. */
-  @media (max-width: 480px), (display-mode: standalone) {
-    body { padding: 0; gap: 0; min-height: 100dvh; background: var(--paper); }
-    .tel {
-      max-width: none; width: 100%; height: 100dvh; max-height: none;
-      min-height: 0; border-radius: 0; box-shadow: none;
-    }
-    .ecran { padding-left: 16px; padding-right: 16px; }
-    .legende { display: none; }
-    /* Encoche et barre de geste : on respecte les zones sures d'iPhone. */
-    .haut { padding-top: calc(17px + env(safe-area-inset-top)); }
-    .bas { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  /* La marge basse tient compte de la barre de geste MEME sans barre de
+     navigation : sur la liste des resultats, la derniere pharmacie passait
+     sous le trait de l'iPhone (mesure : 779 px contre 778 px). */
+  .ecran {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 0 calc(16px + var(--sar)) calc(24px + var(--sab)) calc(16px + var(--sal));
   }
+  .ecran.avec-bas { padding-bottom: calc(96px + var(--sab)); }
 
   /* ---------- Ouverture ---------- */
-
   .splash {
-    position: absolute; inset: 0; background: var(--paper); z-index: 40;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px; cursor: pointer;
+    position: fixed; inset: 0; z-index: 50; background: var(--paper);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    padding: var(--sat) var(--sar) var(--sab) var(--sal);
   }
-  .splash-logo {
-    font-size: 46px; font-weight: 800; letter-spacing: 4px; color: var(--green);
-    animation: apparait 0.7s ease both;
-  }
-  .splash-bl { font-size: 14.5px; color: var(--soft); animation: apparait 0.7s 0.25s ease both; }
-  .splash-note { position: absolute; bottom: 26px; font-size: 12px; color: var(--faint); }
-  @keyframes apparait { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .splash-logo, .splash-bl { animation: none; } }
+  .splash-logo { font-size: 46px; font-weight: 800; letter-spacing: 4px; color: var(--green); }
+  .splash-bl { font-size: 15px; color: var(--soft); }
 
   /* ---------- Barre haute ---------- */
-
-  .haut { position: sticky; top: 0; z-index: 5; background: var(--paper);
-    padding: 17px 0 11px; display: flex; align-items: center; gap: 10px; }
+  .haut {
+    position: sticky; top: 0; z-index: 5; background: var(--paper);
+    padding: calc(12px + var(--sat)) 0 10px; display: flex; align-items: center; gap: 10px;
+    min-height: 44px;
+  }
   .logo { font-size: 19px; font-weight: 800; letter-spacing: 1.4px; color: var(--green); }
+  /* L'etiquette reste discrete a l'oeil, mais sa zone de toucher atteint
+     44 px de haut grace au pseudo-element, qui deborde sans se voir. */
   .role-tag {
-    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase;
-    color: var(--faint); border: 1px solid var(--rule); padding: 4px 8px; border-radius: 5px;
-    background: none;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--faint); border: 1px solid var(--rule); padding: 5px 9px; border-radius: 6px;
+    background: none; min-height: 32px; position: relative; white-space: nowrap;
   }
-  .role-tag:hover { color: var(--ink); border-color: var(--faint); }
-  .retour { background: none; border: none; padding: 6px 8px 6px 0; color: var(--soft);
-    font-size: 15px; display: inline-flex; align-items: center; gap: 6px; }
-  .retour:hover { color: var(--ink); }
-  .haut-fin { margin-left: auto; display: flex; align-items: center; gap: 9px; }
-  .rond { background: var(--card); border: 1px solid var(--firm); border-radius: 999px;
-    width: 33px; height: 33px; display: inline-flex; align-items: center; justify-content: center; color: var(--soft); }
-  .rond:hover { color: var(--ink); border-color: var(--faint); }
+  .role-tag::after { content: ""; position: absolute; top: -7px; bottom: -7px; left: -3px; right: -3px; }
+  .retour {
+    background: none; border: none; padding: 8px 8px 8px 0; color: var(--soft);
+    font-size: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; text-align: left;
+  }
+  .haut-fin { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  /* 44 px : le minimum d'une cible tactile. A 40 px, le bouton manquait
+     sous le pouce. */
+  .rond {
+    background: var(--card); border: 1px solid var(--firm); border-radius: 999px;
+    width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; color: var(--soft);
+  }
 
-  h1 { font-size: 25px; font-weight: 800; letter-spacing: -0.03em; margin: 6px 0 6px; text-wrap: balance; }
+  h1 { font-size: 25px; font-weight: 800; letter-spacing: -0.03em; margin: 6px 0 6px; line-height: 1.2; }
   h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px; }
-  .chapo { color: var(--soft); margin: 0 0 20px; font-size: 15px; }
+  .chapo { color: var(--soft); margin: 0 0 18px; font-size: 15px; }
 
-  /* ---------- Choix du role ---------- */
-
-  .role-carte {
+  /* ---------- Blocs communs ---------- */
+  .carte-choix {
     width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 16px;
-    padding: 20px; text-align: left; margin-bottom: 11px; display: flex; flex-direction: column; gap: 5px;
+    padding: 18px; text-align: left; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px;
   }
-  .role-carte:hover { border-color: var(--green); }
-  .role-carte .t { font-size: 18px; font-weight: 700; }
-  .role-carte .d { font-size: 14px; color: var(--soft); line-height: 1.45; }
+  .carte-choix .t { font-size: 18px; font-weight: 700; }
+  .carte-choix .d { font-size: 14px; color: var(--soft); line-height: 1.45; }
 
-  /* ---------- Communs ---------- */
-
-  .carte-lait { background: var(--card); border: 1px solid var(--rule); border-radius: 16px;
-    padding: 16px; display: flex; align-items: center; gap: 14px; width: 100%;
-    text-align: left; margin-bottom: 10px; }
-  .carte-lait:hover { border-color: var(--firm); }
-  .carte-lait.fantome { border-style: dashed; background: transparent; cursor: default;
-    font-style: italic; opacity: 0.62; }
-  .carte-lait.fantome:hover { border-color: var(--rule); }
-  .carte-lait.fantome .vignette { background: var(--sunk); color: var(--faint); }
-  .legende-fantome { margin: 8px 0 0; font-size: 12.5px; color: var(--faint);
-    font-style: italic; text-align: center; }
-  .vignette { flex: none; width: 46px; height: 46px; border-radius: 12px; background: var(--wash);
-    color: var(--green); display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 15px; }
-  .carte-lait .qui { font-size: 12.5px; color: var(--faint); }
-  .carte-lait .quoi { font-weight: 700; }
-  .carte-lait .marque { font-size: 13px; color: var(--soft); }
-
-  .cta { width: 100%; background: var(--corail); color: #fff; border: none; border-radius: 14px;
-    padding: 17px; font-size: 17px; font-weight: 700; margin-top: 13px; }
-  .cta.vert { background: var(--green); color: var(--paper); }
-  .cta:hover { filter: brightness(1.06); }
-  .cta-2 { width: 100%; background: none; color: var(--soft); border: 1px solid var(--firm);
-    border-radius: 14px; padding: 14px; font-size: 15px; margin-top: 10px; }
-  .cta-2:hover { color: var(--ink); border-color: var(--faint); }
-  .aide { margin-top: 20px; padding: 14px 16px; background: var(--sunk); border-radius: 12px;
-    font-size: 13.5px; color: var(--soft); line-height: 1.5; }
-
-  /* Encart du compte, en bas de l'accueil parent */
-  .encart-compte {
-    margin-top: 22px; padding: 18px; background: var(--card);
-    border: 1px solid var(--rule); border-radius: 14px;
+  .cta {
+    width: 100%; background: var(--corail); color: #fff; border: none; border-radius: 14px;
+    padding: 16px; font-size: 17px; font-weight: 700; margin-top: 12px; min-height: 54px;
   }
-  .encart-titre { margin: 0 0 12px; font-size: 16.5px; font-weight: 700; }
-  .encart-liste {
-    margin: 0; padding: 0; list-style: none;
-    display: flex; flex-direction: column; gap: 9px;
+  .cta.vert { background: var(--green); color: var(--on-green); }
+  .cta:disabled { opacity: 0.45; cursor: not-allowed; }
+  .cta-2 {
+    width: 100%; background: none; color: var(--soft); border: 1px solid var(--firm);
+    border-radius: 14px; padding: 14px; font-size: 15px; margin-top: 10px; min-height: 50px;
   }
-  .encart-liste li {
-    position: relative; padding-left: 24px; font-size: 14px;
-    color: var(--soft); line-height: 1.45;
+  .aide {
+    margin-top: 18px; padding: 14px 16px; background: var(--sunk); border-radius: 12px;
+    font-size: 14px; color: var(--soft); line-height: 1.5;
   }
-  .encart-liste li::before {
-    content: "✓"; position: absolute; left: 0; top: 0;
-    color: var(--green); font-weight: 800; font-size: 13px;
-  }
-  .encart-compte .cta { margin-top: 16px; }
-  .encart-pied {
-    margin: 12px 0 0; font-size: 12.5px; color: var(--faint);
-    line-height: 1.45; text-align: center;
+  .aide b { color: var(--ink); }
+  .alerte {
+    margin: 0 0 14px; padding: 12px 14px; background: var(--amber-wash); border-radius: 12px;
+    font-size: 14px; color: var(--ink); line-height: 1.45; border-left: 3px solid var(--amber);
   }
 
-  .champ { width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
-    padding: 14px 16px; font-size: 16px; margin-bottom: 10px; }
+  .champ {
+    width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 14px 15px; font-size: 16px; margin-bottom: 8px;
+  }
   .champ::placeholder { color: var(--faint); }
-  .code { letter-spacing: 0.45em; font-family: var(--mono); text-align: center; font-size: 21px; }
 
-  .famille { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--faint); margin: 20px 0 8px; }
+  /* ---------- Visuels des marques ---------- */
+  /* Plaque blanche dans les deux themes : les logos et les boites sont
+     dessines pour un fond clair. */
+  .plaque {
+    display: flex; align-items: center; justify-content: center; height: 58px;
+    background: #FFFFFF; border-radius: 8px; padding: 7px 10px; margin-bottom: 5px;
+  }
+  .plaque img { display: block; max-width: 100%; max-height: 44px; object-fit: contain; }
+  .vignette { flex: none; width: 56px; height: 56px; border-radius: 8px; background: #FFFFFF; object-fit: contain; }
+  .vignette.vide { background: var(--sunk); }
+  img.rate { visibility: hidden; }
+  .plaque:has(img.rate) { display: none; }
+  .ligne.avec-vignette { padding-top: 8px; padding-bottom: 8px; }
+  .equiv.avec-vignette { display: flex; align-items: center; gap: 12px; }
+
+  /* ---------- Lait choisi ---------- */
+  .bandeau-lait { background: var(--wash); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+  .bandeau-lait .vignette { width: 64px; height: 64px; }
+  .bandeau-lait .m { font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; }
+  .bandeau-lait .p { font-weight: 700; font-size: 17px; }
+  .bandeau-lait .s { font-size: 13px; color: var(--soft); }
+
+  /* ---------- Catalogue ---------- */
+  .famille { font-family: var(--mono); font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint); margin: 20px 0 8px; }
   .grille { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
-  .marque-carte { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
-    padding: 13px 12px; text-align: left; font-weight: 700; font-size: 14.5px; min-height: 62px;
-    display: flex; flex-direction: column; justify-content: center; gap: 3px; position: relative; }
-  .marque-carte:hover { border-color: var(--firm); }
-  .marque-carte .nb { font-size: 11.5px; font-weight: 400; color: var(--faint); font-family: var(--mono); }
+  .marque-carte {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 13px 12px;
+    text-align: left; font-weight: 700; font-size: 15px; min-height: 64px;
+    display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  }
+  .marque-carte .nb { font-size: 12px; font-weight: 400; color: var(--faint); font-family: var(--mono); }
   .marque-carte[data-etat="fait"] { border-color: var(--green); background: var(--wash); }
   .marque-carte[data-etat="fait"] .nb { color: var(--green); font-weight: 600; }
-  .marque-carte[data-etat="absente"] { background: var(--sunk); border-style: dashed; opacity: 0.72; }
+  .marque-carte[data-etat="absente"] { background: var(--sunk); border-style: dashed; opacity: 0.75; }
   .marque-carte[data-etat="absente"] .nb { color: var(--amber); }
 
-  .recherche { width: 100%; background: var(--card); border: 1px solid var(--rule);
-    border-radius: 12px; padding: 13px 15px; font-size: 16px; margin-bottom: 4px; }
-  .recherche::placeholder { color: var(--faint); }
-
-  .groupe { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--faint); margin: 18px 0 7px; }
-  .ligne { width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
-    padding: 14px 15px; text-align: left; display: flex; align-items: center; gap: 11px; margin-bottom: 7px; }
-  .ligne:hover { border-color: var(--firm); }
+  .groupe { font-family: var(--mono); font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint); margin: 18px 0 7px; }
+  .ligne {
+    width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 14px 15px; text-align: left; display: flex; align-items: center; gap: 11px;
+    margin-bottom: 7px; min-height: 54px;
+  }
   .ligne[aria-pressed="true"] { border-color: var(--green); background: var(--wash); }
   .ligne .nom { font-weight: 600; }
-  .ligne .spec { font-size: 11.5px; color: var(--soft); background: var(--badge);
-    padding: 2px 8px; border-radius: 5px; margin-left: auto; white-space: nowrap; }
+  .ligne .spec { font-size: 12px; color: var(--soft); background: var(--badge); padding: 3px 8px; border-radius: 6px; margin-left: auto; white-space: nowrap; }
+  /* Le nom complet, tel qu'ecrit sur la boite, sous le nom court ; la
+     particularite passe dessous : a cote de la photo, sur 320 px, elle
+     ecrasait le nom. */
+  .ligne .noms { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; flex: 1; gap: 2px; }
+  .ligne .complet { font-size: 12px; color: var(--soft); line-height: 1.35; }
+  .ligne .noms .spec { margin-left: 0; margin-top: 3px; white-space: normal; }
   .ligne[aria-pressed="true"] .spec { background: var(--badge-sel); color: var(--ink); }
-  .case { flex: none; width: 22px; height: 22px; border: 2px solid var(--firm); border-radius: 6px;
-    display: flex; align-items: center; justify-content: center; font-size: 13px;
-    font-weight: 800; color: transparent; }
-  .ligne[aria-pressed="true"] .case { background: var(--green); border-color: var(--green); color: var(--paper); }
+  .case { flex: none; width: 24px; height: 24px; border: 2px solid var(--firm); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: transparent; }
+  .ligne[aria-pressed="true"] .case { background: var(--green); border-color: var(--green); color: var(--on-green); }
 
-  /* ---------- Parent : resultats ---------- */
+  /* ---------- Localisation ---------- */
+  .etat-loc { text-align: center; padding: 30px 0 10px; }
+  .roue {
+    width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--rule);
+    border-top-color: var(--green); margin: 0 auto 18px; animation: tourne 0.9s linear infinite;
+  }
+  @keyframes tourne { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .roue { animation-duration: 2.4s; } }
 
-  .bandeau-lait { background: var(--wash); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
-  .bandeau-lait .m { font-size: 11px; font-weight: 700; color: var(--green);
-    text-transform: uppercase; letter-spacing: 0.05em; }
-  .bandeau-lait .p { font-weight: 700; }
-  .pdv { width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
-    padding: 15px; text-align: left; margin-bottom: 9px; display: flex; flex-direction: column; gap: 7px; }
-  .pdv:hover { border-color: var(--firm); }
+  /* ---------- Resultats ---------- */
+  .compte-res { font-size: 14px; color: var(--soft); margin: 0 0 12px; }
+  .rayons { display: flex; gap: 7px; margin: 0 0 14px; flex-wrap: wrap; }
+  .puce {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 999px;
+    padding: 8px 14px; font-size: 14px; color: var(--soft); min-height: 44px;
+  }
+  .puce[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--on-green); font-weight: 600; }
+  /* 360 px, la largeur la plus courante sur Android : les cinq rayons
+     tiennent sur une ligne au lieu de laisser « 20 km » seul en dessous. */
+  @media (max-width: 380px) { .puce { padding-left: 10px; padding-right: 10px; } }
+  .pdv {
+    width: 100%; background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 15px; text-align: left; margin-bottom: 9px; display: flex; flex-direction: column; gap: 8px;
+  }
   .pdv-haut { display: flex; gap: 12px; align-items: flex-start; }
   .pdv-nom { font-weight: 700; font-size: 16px; line-height: 1.25; }
   .pdv-adr { font-size: 13px; color: var(--soft); }
-  .pdv-dist { margin-left: auto; font-family: var(--mono); font-weight: 700; color: var(--green);
-    font-size: 15px; white-space: nowrap; }
-  .etiquette { display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
-    padding: 3px 9px; border-radius: 6px; font-weight: 600; align-self: flex-start; }
-  .etiquette.ok { background: var(--wash); color: var(--green); }
-  .etiquette.inconnu { background: var(--badge); color: var(--soft); }
-  .avert { font-size: 12.5px; color: var(--soft); background: var(--sunk); padding: 11px 13px;
-    border-radius: 10px; margin-bottom: 14px; line-height: 1.45; }
+  .pdv-dist { margin-left: auto; font-family: var(--mono); font-weight: 700; color: var(--green); font-size: 15px; white-space: nowrap; padding-left: 6px; }
+  .etiquettes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .etiquette { font-size: 12px; padding: 4px 9px; border-radius: 6px; font-weight: 600; }
+  .etiquette.inconnu { background: var(--badge); color: var(--soft); font-weight: 500; }
+  .etiquette.trouve { background: var(--wash); color: var(--green); }
+  .etiquette.absent { background: var(--corail-wash); color: var(--corail); }
+  .etiquette.para { background: var(--sunk); color: var(--faint); font-weight: 500; }
 
-  .fiche-actions { display: flex; gap: 9px; margin: 18px 0 14px; }
-  .act-1 { flex: 2; background: var(--corail); color: #fff; border: none; border-radius: 13px;
-    padding: 16px; font-size: 16px; font-weight: 700; }
-  .act-2 { flex: 1; background: var(--wash); color: var(--green); border: none; border-radius: 13px;
-    padding: 16px; font-size: 16px; font-weight: 700; }
-  .infos { display: flex; flex-direction: column; gap: 1px; background: var(--rule);
-    border-radius: 12px; overflow: hidden; }
-  .info { background: var(--card); padding: 13px 15px; display: flex; gap: 12px; font-size: 14.5px; }
-  .info .k { color: var(--faint); min-width: 74px; font-size: 13px; }
+  /* ---------- Fiche ---------- */
+  .fiche-actions { display: flex; gap: 9px; margin: 16px 0 14px; }
+  .act-1 { flex: 2; background: var(--corail); color: #fff; border: none; border-radius: 13px; padding: 16px; font-size: 17px; font-weight: 700; min-height: 56px; }
+  .act-1:disabled { background: var(--firm); color: var(--soft); }
+  .act-2 { flex: 1; background: var(--wash); color: var(--green); border: none; border-radius: 13px; padding: 16px; font-size: 17px; font-weight: 700; min-height: 56px; }
+  .infos { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border-radius: 12px; overflow: hidden; }
+  .info { background: var(--card); padding: 13px 15px; display: flex; gap: 12px; font-size: 15px; }
+  .info .k { color: var(--faint); min-width: 82px; font-size: 13px; padding-top: 2px; }
+  .info a { color: var(--green); font-weight: 600; text-decoration: none; }
 
-  .question-bloc { text-align: center; padding: 28px 0 8px; }
-  .reponses { display: flex; gap: 10px; margin-top: 20px; }
-  .rep { flex: 1; background: var(--card); border: 1px solid var(--firm); border-radius: 14px;
-    padding: 18px 10px; font-size: 16px; font-weight: 700; }
-  .rep.oui:hover { border-color: var(--green); color: var(--green); }
-  .rep.non:hover { border-color: var(--corail); color: var(--corail); }
+  .question-bloc { text-align: center; padding: 24px 0 8px; }
+  .reponses { display: flex; gap: 10px; margin-top: 18px; }
+  .rep { flex: 1; background: var(--card); border: 1px solid var(--firm); border-radius: 14px; padding: 18px 10px; font-size: 17px; font-weight: 700; min-height: 60px; }
+  .vide-rond { width: 58px; height: 58px; border-radius: 50%; background: var(--sunk); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 24px; color: var(--faint); }
+  .vide-rond.ok { background: var(--wash); color: var(--green); }
 
-  .vide { text-align: center; padding: 24px 0 8px; }
-  .vide-rond { width: 58px; height: 58px; border-radius: 50%; background: var(--sunk);
-    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
-    font-size: 24px; color: var(--faint); }
-  .equiv { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
-    padding: 14px 15px; margin-bottom: 8px; text-align: left; width: 100%; }
-  .equiv:hover { border-color: var(--firm); }
-  .equiv .em { font-size: 11px; font-weight: 700; color: var(--green);
-    text-transform: uppercase; letter-spacing: 0.05em; }
+  .equiv { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 15px; margin-bottom: 8px; text-align: left; width: 100%; min-height: 54px; }
+  .equiv .em { font-size: 11px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.05em; }
   .equiv .ep { font-weight: 600; }
-  .source { margin-top: 16px; padding: 13px 15px; background: var(--sunk); border-radius: 10px;
-    font-size: 12.5px; color: var(--soft); line-height: 1.5; }
+  .source { margin-top: 16px; padding: 13px 15px; background: var(--sunk); border-radius: 10px; font-size: 13px; color: var(--soft); line-height: 1.5; }
 
-  .reglage { display: flex; align-items: center; gap: 12px; background: var(--card);
-    border: 1px solid var(--rule); border-radius: 12px; padding: 14px 15px;
-    margin-bottom: 8px; width: 100%; text-align: left; }
-  .reglage .val { margin-left: auto; color: var(--faint); font-size: 14px; }
+  .reglage { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 15px; margin-bottom: 8px; width: 100%; text-align: left; min-height: 54px; }
+  .reglage .val { margin-left: auto; color: var(--faint); font-size: 14px; text-align: right; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  /* ---------- Pro ---------- */
+  /* ---------- Point de vente identifie ---------- */
+  .officine-carte { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 13px 15px; margin-bottom: 12px; }
+  .officine-carte .t { font-family: var(--mono); font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--faint); }
+  .officine-carte .n { font-weight: 700; margin-top: 3px; line-height: 1.3; }
+  .officine-carte .a { font-size: 13px; color: var(--soft); margin-top: 2px; }
+  .officine-carte .cta-2 { margin-top: 10px; }
 
-  .bloc { background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
-    padding: 17px; margin-bottom: 12px; }
-  .bloc-titre { font-family: var(--mono); font-size: 10px; letter-spacing: 0.11em;
-    text-transform: uppercase; color: var(--faint); margin: 0 0 11px; }
-  .chiffres { display: flex; gap: 24px; }
-  .chiffres div { display: flex; flex-direction: column; }
-  .chiffres .v { font-family: var(--mono); font-size: 25px; font-weight: 700; color: var(--green);
-    font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .chiffres .l { font-size: 12px; color: var(--faint); }
-  .maj { font-size: 13px; color: var(--soft); margin: 10px 0 0; }
-  .manques { border-color: var(--corail); }
-  .manques .bloc-titre { color: var(--corail); }
-  .manque-ligne { display: flex; align-items: center; gap: 11px; padding: 10px 0;
-    border-bottom: 1px solid var(--rule); }
-  .manque-ligne:last-of-type { border-bottom: none; }
-  .manque-nb { font-family: var(--mono); font-weight: 700; color: var(--corail); font-size: 17px;
-    min-width: 26px; font-variant-numeric: tabular-nums; }
-  .manque-lait { font-weight: 600; font-size: 14.5px; }
-  .manque-marque { font-size: 12px; color: var(--faint); }
-  .encart-vente { margin-top: 12px; padding: 12px 14px; background: var(--corail-wash);
-    border-radius: 10px; font-size: 13px; color: var(--soft); line-height: 1.5; }
-  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--rule);
-    border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
-  .stat { background: var(--card); padding: 14px; }
-  .stat .v { font-family: var(--mono); font-size: 22px; font-weight: 700;
-    font-variant-numeric: tabular-nums; display: block; line-height: 1.15; }
-  .stat .l { font-size: 12px; color: var(--soft); line-height: 1.35; }
-  .fiche-ligne { display: flex; gap: 10px; padding: 8px 0; font-size: 14.5px; }
-  .fiche-ligne .k { color: var(--faint); min-width: 92px; font-size: 13px; }
-
-  .recap-marque { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
-    padding: 13px 15px; margin-bottom: 8px; }
-  .recap-nom { font-weight: 700; font-size: 15px; display: flex; align-items: baseline;
-    gap: 10px; margin-bottom: 8px; }
-  .recap-nb { font-family: var(--mono); font-size: 11px; color: var(--faint); font-weight: 400;
-    margin-left: auto; font-variant-numeric: tabular-nums; }
+  .recap-marque { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 13px 15px; margin-bottom: 8px; }
+  .recap-nom { font-weight: 700; display: flex; gap: 10px; margin-bottom: 8px; }
+  .recap-nb { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-left: auto; }
   .recap-refs { display: flex; flex-wrap: wrap; gap: 6px; }
-  .puce { font-size: 12.5px; background: var(--wash); color: var(--green);
-    padding: 4px 9px; border-radius: 7px; font-weight: 600; }
+  .pastille { font-size: 13px; background: var(--wash); color: var(--green); padding: 4px 10px; border-radius: 7px; font-weight: 600; }
 
-  .avancement { display: flex; align-items: center; gap: 11px; margin: 14px 0 4px; }
+  .avancement { display: flex; align-items: center; gap: 11px; margin: 4px 0 6px; }
   .jauge { flex: 1; height: 5px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
-  .jauge-remplie { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.28s ease; }
-  .compteur { font-family: var(--mono); font-size: 12px; color: var(--soft);
-    font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .jauge-remplie { height: 100%; background: var(--green); border-radius: 3px; }
+  .compteur { font-family: var(--mono); font-size: 12px; color: var(--soft); white-space: nowrap; }
 
   /* ---------- Navigation basse ---------- */
-
-  .bas { position: absolute; left: 0; right: 0; bottom: 0; background: var(--card);
-    border-top: 1px solid var(--rule); display: flex; padding: 8px 6px 12px; }
-  .onglet { flex: 1; background: none; border: none; padding: 6px 4px; font-size: 11px; color: var(--faint); }
+  .bas {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--card);
+    border-top: 1px solid var(--rule); display: flex;
+    padding: 6px calc(6px + var(--sar)) calc(8px + var(--sab)) calc(6px + var(--sal));
+  }
+  .onglet { flex: 1; background: none; border: none; padding: 10px 4px; font-size: 12px; color: var(--faint); min-height: 50px; }
   .onglet[aria-current="true"] { color: var(--green); font-weight: 700; }
 
-  .legende { max-width: 412px; width: 100%; color: #7d8c84; font-size: 12.5px;
-    line-height: 1.6; text-align: center; }
-  .legende b { color: #b9c7bf; }
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%); z-index: 60;
+    bottom: calc(96px + var(--sab)); background: var(--ink); color: var(--paper);
+    padding: 12px 18px; border-radius: 12px; font-size: 15px; max-width: calc(100% - 32px);
+    text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .toast.visible { opacity: 1; }
 </style>
 
-<div class="tel">
+<div class="app">
   <div class="splash" id="splash">
     <div class="splash-logo">BIBE</div>
     <div class="splash-bl">Le lait de votre bébé, près de vous</div>
-    <div class="splash-note">Touchez pour continuer</div>
   </div>
   <div class="ecran" id="ecran"></div>
-  <nav class="bas" id="bas"></nav>
+  <nav class="bas" id="bas" aria-label="Navigation principale"></nav>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </div>
-
-<p class="legende">
-  <b>Maquette de démonstration.</b> Points de vente, statistiques et demandes non
-  satisfaites sont fictifs. Les vignettes tiennent la place des futurs logos de marques.
-</p>
 
 <script>
 (function () {
   "use strict";
 
-  var FAMILLES = [{"libelle": "Marques courantes", "marques": [{"nom": "Blédilait", "produits": [["Blédilait 1", "0-6 mois", ""], ["Blédilait 2", "6-12 mois", ""], ["Blédilait Croissance", "12 mois et +", ""], ["Premium 1 Formule épaissie", "0-6 mois", "Épaissi"], ["Premium 2 Formule épaissie", "6-12 mois", "Épaissi"], ["Blédilait AR", "0-12 mois", "Anti-régurgitations"]]}, {"nom": "Candia Baby", "produits": [["Baby 2", "6-12 mois", ""], ["Baby Croissance", "12 mois et +", ""]]}, {"nom": "France Lait", "produits": [["France Lait 1", "0-6 mois", ""], ["France Lait 2", "6-12 mois", ""], ["France Lait 3", "12 mois et +", ""]]}, {"nom": "Gallia", "produits": [["Calisma 1", "0-6 mois", ""], ["Calisma 2", "6-12 mois", ""], ["Calisma Relais 1", "0-6 mois", ""], ["Calisma Relais 2", "6-12 mois", ""], ["Calisma Croissance", "12 mois et +", ""], ["Calisma Junior", "12 mois et +", ""], ["Galliagest Premium 1", "0-6 mois", "Confort digestif"], ["Galliagest Premium 2", "6-12 mois", "Confort digestif"], ["Galliagest Croissance", "12 mois et +", "Confort digestif"], ["Bébé Expert AR amidon", "0-12 mois", "Anti-régurgitations"], ["Bébé Expert AR Caroube 2", "6-12 mois", "Anti-régurgitations"], ["Bébé Expert AC Transit 1", "0-6 mois", "Transit"], ["Procesa 1", "0-6 mois", ""], ["Procesa 2", "6-12 mois", ""]]}, {"nom": "Guigoz", "produits": [["Optipro 1", "0-6 mois", ""], ["Optipro 2", "6-12 mois", ""], ["Optipro 3 Croissance", "12 mois et +", ""], ["Ultima 1", "0-6 mois", ""], ["Ultima 2", "6-12 mois", ""], ["Relais 1", "0-6 mois", ""], ["Gest 1", "0-6 mois", "Confort digestif"], ["Digest Plus", "0-12 mois", "Confort digestif"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations"], ["Expert AR 1 Mix", "0-6 mois", "Anti-régurgitations"], ["Expert AR 2 Mix", "6-12 mois", "Anti-régurgitations"], ["Pelargon 1", "0-6 mois", "Transit"], ["Evolia 1", "0-6 mois", ""], ["Evolia 2", "6-12 mois", ""]]}, {"nom": "Inostime", "produits": [["LPN HMO Plus 1", "0-6 mois", ""], ["LPN HMO Plus 2", "6-12 mois", ""]]}, {"nom": "Lactel Éveil", "produits": [["Éveil Croissance", "12 mois et +", ""]]}, {"nom": "Milumel", "produits": [["Milumel 1", "0-6 mois", ""], ["Milumel 2", "6-12 mois", ""], ["Lémiel 1", "0-6 mois", ""], ["Milumel Croissance", "12 mois et +", ""]]}, {"nom": "Modilac", "produits": [["Doucéa 1", "0-6 mois", ""], ["Doucéa 2", "6-12 mois", ""], ["Précision 1", "0-6 mois", ""], ["Précision 2", "6-12 mois", ""], ["Actigest 1", "0-6 mois", "Confort digestif"], ["Actigest 2", "6-12 mois", "Confort digestif"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations"], ["Expert Riz 1", "0-6 mois", "Sans PLV"], ["Expert Riz 2", "6-12 mois", "Sans PLV"]]}, {"nom": "Nidal", "produits": [["Nidal 1", "0-6 mois", ""], ["Nidal 2", "6-12 mois", ""], ["Nidal Croissance", "12 mois et +", ""], ["Gest 1", "0-6 mois", "Confort digestif"]]}, {"nom": "Novalac", "produits": [["Novalac 1", "0-6 mois", ""], ["Novalac 2", "6-12 mois", ""], ["Novalac 3 Croissance", "12 mois et +", ""], ["Relia 1", "0-6 mois", ""], ["Relia 2", "6-12 mois", ""], ["AR 0-36 mois", "0-12 mois", "Anti-régurgitations"], ["AR Plus 1", "0-6 mois", "Anti-régurgitations"], ["AR Plus 2", "6-12 mois", "Anti-régurgitations"], ["Novagest Plus", "0-12 mois", "Confort digestif"], ["Transit 0-36 mois", "0-12 mois", "Transit"], ["Novalac AC", "0-6 mois", "Coliques"]]}, {"nom": "Nutriben", "produits": [["Innova 1", "0-6 mois", ""], ["Innova 2", "6-12 mois", ""], ["Nutriben 3", "12 mois et +", ""], ["AR 1", "0-6 mois", "Anti-régurgitations"], ["AR 2", "6-12 mois", "Anti-régurgitations"]]}, {"nom": "Physiolac", "produits": [["Physiolac 1", "0-6 mois", ""], ["Physiolac 2", "6-12 mois", ""], ["Relais 1", "0-6 mois", ""], ["Physiolac AR", "0-6 mois", "Anti-régurgitations"]]}, {"nom": "Picot", "produits": [["Nutrition Quotidienne 1", "0-6 mois", ""], ["Nutrition Quotidienne 2", "6-12 mois", ""], ["Standard 2", "6-12 mois", ""], ["Croissance", "12 mois et +", ""], ["AR 2", "6-12 mois", "Anti-régurgitations"], ["Expert Picogest 1", "0-6 mois", "Confort digestif"], ["Expert Picogest 2", "6-12 mois", "Confort digestif"], ["Pepti-Junior", "0-12 mois", "Hydrolysat"]]}]}, {"libelle": "Marques bio", "marques": [{"nom": "Babybio", "produits": [["Primea 1", "0-6 mois", ""], ["Primea 2", "6-12 mois", ""], ["Primea 3", "12 mois et +", ""], ["Optima 1", "0-6 mois", ""], ["Optima 2", "6-12 mois", ""], ["Optima 3", "12 mois et +", ""], ["Caprea 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "Biostime", "produits": [["SN-2 Bio Plus 1", "0-6 mois", ""], ["SN-2 Bio Plus 2", "6-12 mois", ""], ["SN-2 Bio Plus 3", "12 mois et +", ""], ["SN-2 Bio Chèvre 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "Every Milk", "produits": [["Every Milk 1 Bio", "0-6 mois", ""], ["Every Milk 2 Bio", "6-12 mois", ""], ["Every Milk 3 Bio", "12 mois et +", ""]]}, {"nom": "France Bébé Bio", "produits": [["France Bébé Bio 1", "0-6 mois", ""], ["France Bébé Bio 2", "6-12 mois", ""], ["France Bébé Bio 3", "12 mois et +", ""]]}, {"nom": "Good Goût", "produits": [["Good Goût 1", "0-6 mois", ""], ["Good Goût 2", "6-12 mois", ""], ["Good Goût 3", "12 mois et +", ""]]}, {"nom": "HiPP Bio", "produits": [["Combiotic 1", "0-6 mois", ""], ["Combiotic 2", "6-12 mois", ""], ["Combiotic 3", "12 mois et +", ""], ["Essentia 1", "0-6 mois", ""], ["Essentia 2", "6-12 mois", ""], ["Essentia 3", "12 mois et +", ""]]}, {"nom": "Holle", "produits": [["Holle Bio 1", "0-6 mois", ""], ["Holle Bio 2", "6-12 mois", ""], ["Holle Bio 3", "12 mois et +", ""], ["A2 Bio 2", "6-12 mois", ""], ["A2 Bio 3", "12 mois et +", ""], ["Holle Chèvre 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "Junéo", "produits": [["Junéo 1", "0-6 mois", ""], ["Junéo 2", "6-12 mois", ""], ["Junéo 3", "12 mois et +", ""], ["Junéo Chèvre 1", "0-6 mois", "Lait de chèvre"]]}, {"nom": "La Marque en Moins", "produits": [["La Marque en Moins 1", "0-6 mois", ""], ["La Marque en Moins 2", "6-12 mois", ""], ["La Marque en Moins 3", "12 mois et +", ""]]}, {"nom": "Les Petits Culottés", "produits": [["Les Petits Culottés 1", "0-6 mois", ""], ["Les Petits Culottés 2", "6-12 mois", ""], ["Les Petits Culottés 3", "12 mois et +", ""]]}, {"nom": "Les Récoltes Bio", "produits": [["Les Récoltes Bio 1", "0-6 mois", ""], ["Les Récoltes Bio 2", "6-12 mois", ""], ["Les Récoltes Bio 3", "12 mois et +", ""]]}, {"nom": "Nactalia", "produits": [["Nactalia 1", "0-6 mois", ""], ["Nactalia 2", "6-12 mois", ""], ["Nactalia 3", "12 mois et +", ""]]}, {"nom": "Popote", "produits": [["Popote 1", "0-6 mois", ""], ["Popote Croissance", "12 mois et +", ""]]}, {"nom": "Prémibio", "produits": [["Prémilait 1", "0-6 mois", ""], ["Prémilait 2", "6-12 mois", ""], ["Prémilait 3", "12 mois et +", ""], ["Prémichèvre 1", "0-6 mois", "Lait de chèvre"]]}]}, {"libelle": "Laits de chèvre", "marques": [{"nom": "Capricare", "produits": [["Capricare 1", "0-6 mois", "Lait de chèvre"], ["Capricare 2", "6-12 mois", "Lait de chèvre"], ["Capricare 3", "12 mois et +", "Lait de chèvre"]]}, {"nom": "Kabrita", "produits": [["Kabrita 1", "0-6 mois", "Lait de chèvre"], ["Kabrita 2", "6-12 mois", "Lait de chèvre"], ["Kabrita 3", "12 mois et +", "Lait de chèvre"]]}]}, {"libelle": "Préparations médicales — souvent sur ordonnance", "marques": [{"nom": "Alfamino", "produits": [["Alfamino", "0-12 mois", "Acides aminés"]]}, {"nom": "Alfaré", "produits": [["Alfaré", "0-12 mois", "Hydrolysat poussé"]]}, {"nom": "Althéra", "produits": [["Althéra", "0-12 mois", "Hydrolysat poussé"]]}, {"nom": "Neocate", "produits": [["Neocate Syneo", "0-12 mois", "Acides aminés"], ["Neocate Junior", "12 mois et +", "Acides aminés"]]}, {"nom": "Novalac Allernova", "produits": [["Allernova AR", "0-12 mois", "Hydrolysat poussé"], ["Novalac Amina", "0-12 mois", "Acides aminés"]]}, {"nom": "Nutramigen", "produits": [["Nutramigen 1 LGG", "0-6 mois", "Hydrolysat poussé"], ["Nutramigen 2 LGG", "6-12 mois", "Hydrolysat poussé"], ["Nutramigen Puramino", "0-12 mois", "Acides aminés"]]}, {"nom": "Nutriben APLV", "produits": [["Nutriben APLV", "0-12 mois", "Hydrolysat poussé"]]}, {"nom": "Pepticate", "produits": [["Pepticate", "0-12 mois", "Hydrolysat poussé"], ["Pepticate Syneo", "0-12 mois", "Hydrolysat poussé"]]}]}];
+  var FAMILLES = [{"libelle": "Marques courantes", "marques": [{"nom": "Aptamil", "logo": "img/m/aptamil.webp", "produits": [["HN 25 1", "0-6 mois", "Sans lactose", "img/p/aptamil/hn-25-1.webp", "Aptamil HN 25 1"], ["Pronutra 1", "0-6 mois", "", "img/p/aptamil/pronutra-1.webp", "Aptamil Pronutra 1"], ["Pronutra Junior 12+ Vanille", "12 mois et +", "", "img/p/aptamil/pronutra-junior-12-vanille.webp", "Aptamil Pronutra Junior 12+ arôme vanille"], ["Pepti Syneo", "0-12 mois", "Hydrolysat poussé", "img/p/aptamil/pepti-syneo.webp", "Aptamil Pepti Syneo"], ["Pronutra Junior 18+ Vanille", "12 mois et +", "", "img/p/aptamil/pronutra-junior-18-vanille.webp", "Aptamil Pronutra Junior 18+ arôme vanille"], ["Bio 1", "0-6 mois", "Bio", "img/p/aptamil/bio-1.webp", "Aptamil Bio 1"], ["Bio Junior 12+", "12 mois et +", "Bio", "img/p/aptamil/bio-junior-12.webp", "Aptamil Bio Junior 12+"], ["Pronutra Junior 12+", "12 mois et +", "", "img/p/aptamil/pronutra-junior-12.webp", "Aptamil Pronutra Junior 12+"], ["Pronutra 3", "12 mois et +", "", "img/p/aptamil/pronutra-3.webp", "Aptamil Pronutra 3 lait de suite"], ["Bio 2", "6-12 mois", "Bio", "img/p/aptamil/bio-2.webp", "Aptamil Bio 2 lait de suite"], ["AR 2", "6-12 mois", "Anti-régurgitations", "img/p/aptamil/ar-2.webp", "Aptamil AR 2"], ["Bio Pre", "0-6 mois", "", "img/p/aptamil/bio-pre.webp", "Aptamil Bio Pre lait initial"], ["Pronutra 2", "6-12 mois", "", "img/p/aptamil/pronutra-2.webp", "Aptamil Pronutra 2 lait de suite"], ["Sensivia 2", "6-12 mois", "Confort digestif", "img/p/aptamil/sensivia-2.webp", "Aptamil Sensivia 2"], ["Sensivia 1", "0-6 mois", "Confort digestif", "img/p/aptamil/sensivia-1.webp", "Aptamil Sensivia 1"], ["AS Syneo", "0-12 mois", "Acides aminés", "img/p/aptamil/as-syneo.webp", "Aptamil AS Syneo"], ["Pregomin AS", "0-12 mois", "Acides aminés", "img/p/aptamil/pregomin-as.webp", "Aptamil Pregomin AS"], ["Nutribiotik 1", "0-6 mois", "", "img/p/aptamil/nutribiotik-1.webp", "Aptamil Nutribiotik 1"], ["Nutribiotik 3", "12 mois et +", "", "img/p/aptamil/nutribiotik-3.webp", "Aptamil Nutribiotik 3"], ["Profutura Duobiotik 1", "0-6 mois", "", "img/p/aptamil/profutura-duobiotik-1.webp", "Aptamil Profutura Duobiotik 1"], ["Profutura Duobiotik 2", "6-12 mois", "", "img/p/aptamil/profutura-duobiotik-2.webp", "Aptamil Profutura Duobiotik 2"], ["Profutura Duobiotik 3", "12 mois et +", "", "img/p/aptamil/profutura-duobiotik-3.webp", "Aptamil Profutura Duobiotik 3"]]}, {"nom": "Blédilait", "logo": "img/m/bledilait.webp", "produits": [["Blédilait 1", "0-6 mois", "", "img/p/bledilait/bledilait-1.webp", "Blédina Blédilait 1er âge"], ["Blédilait 2", "6-12 mois", "", "img/p/bledilait/bledilait-2.webp", "Blédina Blédilait 2ème âge"], ["Blédilait Croissance", "12 mois et +", "", "img/p/bledilait/bledilait-croissance.webp", "Blédina Blédilait Croissance+"], ["Premium 1 Formule épaissie", "0-6 mois", "Épaissi", "img/p/bledilait/premium-1-formule-epaissie.webp", "Blédina Blédilait Blédigest 1er âge"], ["Premium 2 Formule épaissie", "6-12 mois", "Épaissi", "img/p/bledilait/premium-2-formule-epaissie.webp", "Blédina Blédilait Blédigest 2ème âge"], ["Blédilait AR", "0-12 mois", "Anti-régurgitations", "img/p/bledilait/bledilait-ar.webp", "Blédina Blédilait Anti-Régurgitations (AR) 0-12 mois"], ["Blédilait Junior", "12 mois et +", "", "img/p/bledilait/bledilait-junior.webp", "Blédina Blédilait Junior+"]]}, {"nom": "Candia Baby", "logo": "img/m/candia-baby.webp", "produits": [["Baby 2", "6-12 mois", "", "img/p/candia-baby/baby-2.webp", "Candia Baby 2ème âge"], ["Baby Croissance", "12 mois et +", "", "img/p/candia-baby/baby-croissance.webp", "Candia Baby Croissance 3"], ["Baby 1", "0-6 mois", "", "img/p/candia-baby/baby-1.webp", "Candia Baby 1er âge"], ["Baby Expert 3", "12 mois et +", "Source de fibres (FOS/GOS)", "img/p/candia-baby/baby-expert-3.webp", "Candia Baby Expert 3"], ["Baby Croissance Chocolat", "12 mois et +", "Aromatisé chocolat", "img/p/candia-baby/baby-croissance-chocolat.webp", "Candia Baby Croissance 3 Chocolat"], ["Baby Junior 4", "12 mois et +", "", "img/p/candia-baby/baby-junior-4.webp", "Candia Baby Junior 4"]]}, {"nom": "France Lait", "logo": "img/m/france-lait.webp", "produits": [["France Lait 1", "0-6 mois", "", "", ""], ["France Lait 2", "6-12 mois", "", "img/p/france-lait/france-lait-2.webp", "France Lait Gold 2"], ["France Lait 3", "12 mois et +", "", "img/p/france-lait/france-lait-3.webp", "France Lait Gold 3"]]}, {"nom": "Gallia", "logo": "img/m/gallia.webp", "produits": [["Calisma 1", "0-6 mois", "", "img/p/gallia/calisma-1.webp", "Gallia Calisma 1er âge"], ["Calisma 2", "6-12 mois", "", "img/p/gallia/calisma-2.webp", "Gallia Calisma 2ème âge"], ["Calisma Relais 1", "0-6 mois", "", "img/p/gallia/calisma-relais-1.webp", "Gallia Calisma Relais 1er âge"], ["Calisma Relais 2", "6-12 mois", "", "img/p/gallia/calisma-relais-2.webp", "Gallia Calisma Relais 2ème âge"], ["Calisma Croissance", "12 mois et +", "", "img/p/gallia/calisma-croissance.webp", "Gallia Calisma Croissance"], ["Calisma Junior", "12 mois et +", "", "img/p/gallia/calisma-junior.webp", "Gallia Calisma Junior"], ["Galliagest Premium 1", "0-6 mois", "Confort digestif", "img/p/gallia/galliagest-premium-1.webp", "Gallia Galliagest Premium 1er âge"], ["Galliagest Premium 2", "6-12 mois", "Confort digestif", "img/p/gallia/galliagest-premium-2.webp", "Gallia Galliagest Premium 2ème âge"], ["Galliagest Croissance", "12 mois et +", "Confort digestif", "img/p/gallia/galliagest-croissance.webp", "Gallia Galliagest Croissance"], ["Bébé Expert AR amidon", "0-12 mois", "Anti-régurgitations", "img/p/gallia/bebe-expert-ar-amidon.webp", "Gallia Bébé Expert AR Amidon 0-12 mois"], ["Bébé Expert AR Caroube 2", "6-12 mois", "Anti-régurgitations", "img/p/gallia/bebe-expert-ar-caroube-2.webp", "Gallia Bébé Expert AR Caroube 2ème âge"], ["Bébé Expert AC Transit 1", "0-6 mois", "Transit", "img/p/gallia/bebe-expert-ac-transit-1.webp", "Gallia Bébé Expert AC Transit 3en1 1er âge"], ["Procesa 1", "0-6 mois", "Nés par césarienne", "img/p/gallia/procesa-1.webp", "Gallia Procesa 1er âge"], ["Procesa 2", "6-12 mois", "Nés par césarienne", "img/p/gallia/procesa-2.webp", "Gallia Procesa 2ème âge"], ["Calisma Bio 1", "0-6 mois", "Bio", "img/p/gallia/calisma-bio-1.webp", "Gallia Calisma Bio 1er âge"], ["Calisma Bio 2", "6-12 mois", "Bio", "img/p/gallia/calisma-bio-2.webp", "Gallia Calisma Bio 2ème âge"], ["Calisma Bio Croissance", "12 mois et +", "Bio", "img/p/gallia/calisma-bio-croissance.webp", "Gallia Calisma Bio Croissance"], ["Bébé Expert AR Caroube 1", "0-6 mois", "Anti-régurgitations", "img/p/gallia/bebe-expert-ar-caroube-1.webp", "Gallia Bébé Expert AR Caroube 1er âge"], ["Bébé Expert AC Transit 2", "6-12 mois", "Transit", "img/p/gallia/bebe-expert-ac-transit-2.webp", "Gallia Bébé Expert AC Transit 3en1 2ème âge"], ["Bébé Expert Diargal", "0-12 mois", "Sans lactose", "img/p/gallia/bebe-expert-diargal.webp", "Gallia Bébé Expert Diargal 0-12 mois"], ["Bébé Expert Riz", "0-12 mois", "Sans PLV", "img/p/gallia/bebe-expert-riz.webp", "Gallia Bébé Expert Riz"], ["Bébé Expert Pré-Gallia", "0-12 mois", "Prématurés", "img/p/gallia/bebe-expert-pre-gallia.webp", "Gallia Bébé Expert Pré-Gallia"]]}, {"nom": "Guigoz", "logo": "img/m/guigoz.webp", "produits": [["Optipro 1", "0-6 mois", "", "img/p/guigoz/optipro-1.webp", "Guigoz Optipro 1 lait 1er âge"], ["Optipro 2", "6-12 mois", "", "img/p/guigoz/optipro-2.webp", "Guigoz Optipro 2 lait 2ème âge"], ["Optipro 3 Croissance", "12 mois et +", "", "img/p/guigoz/optipro-3-croissance.webp", "Guigoz Optipro Croissance lait de croissance"], ["Ultima 1", "0-6 mois", "", "img/p/guigoz/ultima-1.webp", "Guigoz Ultima 1 lait 1er âge"], ["Ultima 2", "6-12 mois", "", "img/p/guigoz/ultima-2.webp", "Guigoz Ultima 2 lait 2ème âge"], ["Relais 1", "0-6 mois", "", "img/p/guigoz/relais-1.webp", "Guigoz Optipro Relais 1 lait 1er âge"], ["Gest 1", "0-6 mois", "Épaissi", "img/p/guigoz/gest-1.webp", "GuigozGest 1 formule épaissie lait 1er âge"], ["Digest Plus", "0-12 mois", "Confort digestif", "img/p/guigoz/digest-plus.webp", "Guigoz Expert Digest+ Triple Action"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-1.webp", "Guigoz Expert AR 1 anti-régurgitations"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-2.webp", "Guigoz Expert AR 2 anti-régurgitations"], ["Expert AR 1 Mix", "0-6 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-1-mix.webp", "Guigoz Expert AR Mix 1 anti-régurgitations"], ["Expert AR 2 Mix", "6-12 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-2-mix.webp", "Guigoz Expert AR Mix 2 anti-régurgitations"], ["Pelargon 1", "0-6 mois", "Acidifié (ferments lactiques)", "img/p/guigoz/pelargon-1.webp", "Guigoz Pelargon 1 lait 1er âge"], ["Relais 2", "6-12 mois", "", "img/p/guigoz/relais-2.webp", "Guigoz Optipro Relais 2 lait de suite"], ["Bio 1", "0-6 mois", "Bio", "img/p/guigoz/bio-1.webp", "Guigoz Bio 1 lait 1er âge"], ["Expert Riz", "0-12 mois", "Sans PLV", "img/p/guigoz/expert-riz.webp", "Guigoz Expert Riz alternative végétale"], ["Expert Diagoz", "0-12 mois", "Sans lactose", "img/p/guigoz/expert-diagoz.webp", "Guigoz Expert Diagoz sans lactose"], ["Ultima Pré", "0-12 mois", "Prématurés", "img/p/guigoz/ultima-pre.webp", "Guigoz UltimaPré"], ["Gest 2", "6-12 mois", "Épaissi", "img/p/guigoz/gest-2.webp", "Guigoz Gest 2 lait 2ème âge formule épaissie"], ["Pelargon 2", "6-12 mois", "Acidifié (ferments lactiques)", "img/p/guigoz/pelargon-2.webp", "Guigoz Pelargon 2 lait 2ème âge"], ["Bio 2", "6-12 mois", "Bio", "img/p/guigoz/bio-2.webp", "Guigoz Bio 2 lait 2ème âge"], ["Optipro 4 Junior", "12 mois et +", "", "img/p/guigoz/optipro-4-junior.webp", "Guigoz Optipro Junior lait 4ème âge"], ["Relais 3 Croissance", "12 mois et +", "", "img/p/guigoz/relais-3-croissance.webp", "Guigoz Optipro Relais 3 lait de croissance"], ["Ultima 3 Croissance", "12 mois et +", "", "img/p/guigoz/ultima-3-croissance.webp", "Guigoz Ultima 3 Croissance"], ["Gest 3 Croissance", "12 mois et +", "", "img/p/guigoz/gest-3-croissance.webp", "Guigoz Gest 3 lait de croissance"], ["Pelargon 3 Croissance", "12 mois et +", "Acidifié (ferments lactiques)", "img/p/guigoz/pelargon-3-croissance.webp", "Guigoz Pelargon 3 lait 3ème âge"], ["Bio 3 Croissance", "12 mois et +", "Bio", "img/p/guigoz/bio-3-croissance.webp", "Guigoz Bio 3 lait de croissance"]]}, {"nom": "Inostime", "logo": "img/m/inostime.webp", "produits": [["LPN HMO Plus 1", "0-6 mois", "", "img/p/inostime/lpn-hmo-plus-1.webp", "Inostime LPN HMO Plus 1er âge"], ["LPN HMO Plus 2", "6-12 mois", "", "img/p/inostime/lpn-hmo-plus-2.webp", "Inostime LPN HMO Plus 2ème âge"], ["LPN HMO Plus 3", "12 mois et +", "", "img/p/inostime/lpn-hmo-plus-3.webp", "Inostime LPN HMO Plus 3ème âge (lait de croissance)"], ["HMO AR Plus 1", "0-6 mois", "Anti-régurgitations", "img/p/inostime/hmo-ar-plus-1.webp", "Inostime HMO AR Plus 1"], ["HMO AR Plus 2", "6-12 mois", "Anti-régurgitations", "img/p/inostime/hmo-ar-plus-2.webp", "Inostime HMO AR Plus 2"]]}, {"nom": "Lactel Éveil", "logo": "img/m/lactel-eveil.webp", "produits": [["Éveil Croissance", "12 mois et +", "", "img/p/lactel-eveil/eveil-croissance.webp", "Lactel Éveil Croissance Nature"], ["Éveil 2ème âge", "6-12 mois", "", "img/p/lactel-eveil/eveil-2eme-age.webp", "Lactel Éveil 2ème âge Nature"], ["Éveil Croissance Bio", "12 mois et +", "Bio", "img/p/lactel-eveil/eveil-croissance-bio.webp", "Lactel Éveil Croissance BIO"], ["Éveil Croissance Immunitaire", "12 mois et +", "", "img/p/lactel-eveil/eveil-croissance-immunitaire.webp", "Lactel Éveil Croissance Système Immunitaire"], ["Éveil Junior Croissance Osseuse", "12 mois et +", "", "img/p/lactel-eveil/eveil-junior-croissance-osseuse.webp", "Lactel Éveil Junior Croissance osseuse"]]}, {"nom": "Milsani", "logo": "img/m/milsani.webp", "produits": [["Croissance 3", "12 mois et +", "", "img/p/milsani/croissance-3.webp", "Milsani 3 Croissance Nature"]]}, {"nom": "Modilac", "logo": "img/m/modilac.webp", "produits": [["Doucéa 1", "0-6 mois", "", "img/p/modilac/doucea-1.webp", "Modilac Doucéa Lf+ 1"], ["Doucéa 2", "6-12 mois", "", "img/p/modilac/doucea-2.webp", "Modilac Doucéa Lf+ 2"], ["Précision 1", "0-6 mois", "", "img/p/modilac/precision-1.webp", "Modilac Précision 1"], ["Précision 2", "6-12 mois", "", "img/p/modilac/precision-2.webp", "Modilac Précision 2"], ["Actigest 1", "0-6 mois", "Confort digestif", "img/p/modilac/actigest-1.webp", "Modilac Actigest Lf+ 1"], ["Actigest 2", "6-12 mois", "Confort digestif", "img/p/modilac/actigest-2.webp", "Modilac Actigest Lf+ 2"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations", "img/p/modilac/expert-ar-1.webp", "Modilac Expert AR 1"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations", "img/p/modilac/expert-ar-2.webp", "Modilac Expert AR 2"], ["Expert Riz 1", "0-6 mois", "Sans PLV", "img/p/modilac/expert-riz-1.webp", "Modilac Expert Riz 1"], ["Expert Riz 2", "6-12 mois", "Sans PLV", "img/p/modilac/expert-riz-2.webp", "Modilac Expert Riz 2"], ["Doucéa Croissance", "12 mois et +", "", "img/p/modilac/doucea-croissance.webp", "Modilac Doucéa+ Croissance"], ["Actigest Croissance", "12 mois et +", "Confort digestif", "img/p/modilac/actigest-croissance.webp", "Modilac Actigest+ Croissance"], ["Expert AR Bio", "0-12 mois", "Anti-régurgitations", "img/p/modilac/expert-ar-bio.webp", "Modilac Expert AR Bio"], ["Expert Riz Croissance", "12 mois et +", "Sans PLV", "img/p/modilac/expert-riz-croissance.webp", "Modilac Expert Riz Croissance"], ["Expert Riz AR 1", "0-6 mois", "Sans PLV", "img/p/modilac/expert-riz-ar-1.webp", "Modilac Expert Riz AR 1"], ["Expert Riz AR 2", "6-12 mois", "Sans PLV", "img/p/modilac/expert-riz-ar-2.webp", "Modilac Expert Riz AR 2"], ["Expert Riz AR Croissance", "12 mois et +", "Sans PLV", "img/p/modilac/expert-riz-ar-croissance.webp", "Modilac Expert Riz AR Croissance"], ["Expert Préma", "0-6 mois", "Prématurés", "img/p/modilac/expert-prema.webp", "Modilac Expert Préma"], ["Mon Petit Bio 1", "0-6 mois", "Bio", "img/p/modilac/mon-petit-bio-1.webp", "Modilac Mon petit Bio Lf+ 1"], ["Mon Petit Bio 2", "6-12 mois", "Bio", "img/p/modilac/mon-petit-bio-2.webp", "Modilac Mon petit Bio Lf+ 2"], ["Mon Petit Bio Croissance", "12 mois et +", "Bio", "img/p/modilac/mon-petit-bio-croissance.webp", "Modilac Mon petit Bio+ Croissance"], ["Expert Peptipro", "0-12 mois", "Hydrolysat", "", ""], ["Expert Peptipro AR", "0-12 mois", "Hydrolysat", "", ""]]}, {"nom": "Nan", "logo": "img/m/nan.webp", "produits": [["OptiPro DHA 1", "0-6 mois", "", "img/p/nan/optipro-dha-1.webp", "Nan OptiPro DHA 1"], ["OptiPro 2", "6-12 mois", "", "img/p/nan/optipro-2.webp", "Nan OptiPro 2 lait de suite"], ["OptiPro 3", "12 mois et +", "", "img/p/nan/optipro-3.webp", "Nan OptiPro 3 lait de croissance"], ["OptiPro 4", "12 mois et +", "", "img/p/nan/optipro-4.webp", "Nan OptiPro 4 lait de croissance"], ["OptiPro 5", "12 mois et +", "", "img/p/nan/optipro-5.webp", "Nan OptiPro 5 lait de croissance"], ["OptiPro Satiété 1", "0-6 mois", "Épaissi", "img/p/nan/optipro-satiete-1.webp", "Nan OptiPro Satiété 1 lait épaissi pour nourrissons"], ["OptiPro Satiété 2", "6-12 mois", "Épaissi", "img/p/nan/optipro-satiete-2.webp", "Nan OptiPro Satiété 2 lait de suite épaissi"], ["OptiPro Satiété 3", "12 mois et +", "Épaissi", "img/p/nan/optipro-satiete-3.webp", "Nan OptiPro Satiété 3 lait de croissance épaissi"], ["Evolia DHA 1", "0-6 mois", "", "img/p/nan/evolia-dha-1.webp", "Nan Evolia DHA 1"], ["Evolia 2", "6-12 mois", "", "img/p/nan/evolia-2.webp", "Nan Evolia 2 lait de suite"], ["Evolia 3", "12 mois et +", "", "img/p/nan/evolia-3.webp", "Nan Evolia 3 lait de croissance"], ["ExpertPro A.R.", "0-12 mois", "Anti-régurgitations", "img/p/nan/expertpro-a-r.webp", "Nan ExpertPro A.R. formule épaissie"], ["ExpertPro Complete", "0-12 mois", "Confort digestif", "img/p/nan/expertpro-complete.webp", "Nan ExpertPro Complete"], ["ExpertPro Complete Croissance", "12 mois et +", "Confort digestif", "img/p/nan/expertpro-complete-croissance.webp", "Nan ExpertPro Complete lait de croissance"], ["ExpertPro Sans Lactose", "0-12 mois", "Sans lactose", "img/p/nan/expertpro-sans-lactose.webp", "Nan ExpertPro sans lactose"], ["Sinergity 1", "0-6 mois", "", "img/p/nan/sinergity-1.webp", "Nan Sinergity 1"], ["Sinergity 2", "6-12 mois", "", "img/p/nan/sinergity-2.webp", "Nan Sinergity 2"], ["Sinergity 3", "12 mois et +", "", "img/p/nan/sinergity-3.webp", "Nan Sinergity 3"]]}, {"nom": "Nidal", "logo": "", "produits": [["Nidal 1", "0-6 mois", "", "img/p/nidal/nidal-1.webp", "Nestlé Nidal 1 lait 1er âge"], ["Nidal 2", "6-12 mois", "", "img/p/nidal/nidal-2.webp", "Nestlé Nidal 2 lait 2ème âge"], ["Nidal Croissance", "12 mois et +", "", "img/p/nidal/nidal-croissance.webp", "Nestlé Nidal Croissance 3 lait de croissance"], ["Gest 1", "0-6 mois", "Épaissi", "img/p/nidal/gest-1.webp", "Nestlé NidalGest 1 formule épaissie lait 1er âge"], ["Gest 2", "6-12 mois", "Épaissi", "img/p/nidal/gest-2.webp", "Nestlé NidalGest 2 formule épaissie lait 2ème âge"]]}, {"nom": "Novalac", "logo": "img/m/novalac.webp", "produits": [["Novalac 1", "0-6 mois", "", "img/p/novalac/novalac-1.webp", "Novalac 1"], ["Novalac 2", "6-12 mois", "", "img/p/novalac/novalac-2.webp", "Novalac 2"], ["Novalac 3 Croissance", "12 mois et +", "", "img/p/novalac/novalac-3-croissance.webp", "Novalac 3 Croissance"], ["Relia 1", "0-6 mois", "", "img/p/novalac/relia-1.webp", "Novalac Relia 1"], ["Relia 2", "6-12 mois", "", "img/p/novalac/relia-2.webp", "Novalac Relia 2"], ["AR 0-36 mois", "0-12 mois", "Anti-régurgitations", "img/p/novalac/ar-0-36-mois.webp", "Novalac Expert AR 0-36 mois"], ["AR Plus 1", "0-6 mois", "Anti-régurgitations", "img/p/novalac/ar-plus-1.webp", "Novalac Expert AR+ 0-6 mois"], ["AR Plus 2", "6-12 mois", "Anti-régurgitations", "img/p/novalac/ar-plus-2.webp", "Novalac Expert AR+ 6-36 mois"], ["Novagest Plus", "0-12 mois", "Confort digestif", "img/p/novalac/novagest-plus.webp", "Novalac Expert Novagest+ 0-12 mois"], ["Transit 0-36 mois", "0-12 mois", "Transit", "img/p/novalac/transit-0-36-mois.webp", "Novalac Expert Transit+ 0-36 mois"], ["Novalac AC", "0-12 mois", "Coliques", "img/p/novalac/novalac-ac.webp", "Novalac Expert AC 0-36 mois"], ["Novalac S 1", "0-6 mois", "Satiété", "img/p/novalac/novalac-s-1.webp", "Novalac S 1"], ["Novalac S 2", "6-12 mois", "Satiété", "img/p/novalac/novalac-s-2.webp", "Novalac S2"], ["Novagest Plus 12-36 mois", "12 mois et +", "Confort digestif", "img/p/novalac/novagest-plus-12-36-mois.webp", "Novalac Novagest+ 12-36 mois"], ["Diarinova", "0-12 mois", "Sans lactose", "img/p/novalac/diarinova.webp", "Novalac Expert Diarinova"], ["Novabiotic", "6-12 mois", "Sans lactose", "img/p/novalac/novabiotic.webp", "Novalac Expert NovaBiotic"]]}, {"nom": "Physiolac", "logo": "img/m/physiolac.webp", "produits": [["Physiolac 1", "0-6 mois", "", "img/p/physiolac/physiolac-1.webp", "Physiolac 1"], ["Physiolac 2", "6-12 mois", "", "img/p/physiolac/physiolac-2.webp", "Physiolac 2"], ["Bio AR 1", "0-6 mois", "Anti-régurgitations", "img/p/physiolac/bio-ar-1.webp", "Physiolac Expert Bio AR 1"], ["Physiolac 3 Croissance", "12 mois et +", "", "img/p/physiolac/physiolac-3-croissance.webp", "Physiolac 3 Croissance"], ["Bio 1", "0-6 mois", "Bio", "img/p/physiolac/bio-1.webp", "Physiolac Bio 1"], ["Bio 2", "6-12 mois", "Bio", "img/p/physiolac/bio-2.webp", "Physiolac Bio 2"], ["Bio 3 Croissance", "12 mois et +", "Bio", "img/p/physiolac/bio-3-croissance.webp", "Physiolac Bio 3 Croissance"], ["Bio Épaissi 1", "0-6 mois", "Épaissi", "img/p/physiolac/bio-epaissi-1.webp", "Physiolac Bio Épaissi 1"], ["Bio Épaissi 2", "6-12 mois", "Épaissi", "img/p/physiolac/bio-epaissi-2.webp", "Physiolac Bio Épaissi 2"], ["Bio AR 2", "6-12 mois", "Anti-régurgitations", "img/p/physiolac/bio-ar-2.webp", "Physiolac Expert Bio AR 2"], ["Expert Diarrhées", "0-12 mois", "Sans lactose", "img/p/physiolac/expert-diarrhees.webp", "Physiolac Expert Diarrhées 0-12 mois"]]}, {"nom": "Picot", "logo": "img/m/picot.webp", "produits": [["Nutrition Quotidienne 1", "0-6 mois", "", "img/p/picot/nutrition-quotidienne-1.webp", "Picot 1er âge"], ["Nutrition Quotidienne 2", "6-12 mois", "", "img/p/picot/nutrition-quotidienne-2.webp", "Picot 2ème âge"], ["Croissance", "12 mois et +", "", "img/p/picot/croissance.webp", "Picot 3ème âge"], ["AR 2", "6-12 mois", "Anti-régurgitations", "img/p/picot/ar-2.webp", "Picot AR 2ème âge"], ["Picogest 1", "0-6 mois", "Confort digestif", "img/p/picot/picogest-1.webp", "Picogest 1er âge"], ["Picogest 2", "6-12 mois", "Confort digestif", "img/p/picot/picogest-2.webp", "Picogest 2ème âge"], ["Pepti-Junior", "0-12 mois", "Hydrolysat poussé", "img/p/picot/pepti-junior.webp", "Picot Pepti-Junior Hydrolysat de Caséine"], ["Junior 4", "12 mois et +", "", "img/p/picot/junior-4.webp", "Picot Junior 4 Lait de Croissance Système Immunitaire"], ["AR 1", "0-6 mois", "Anti-régurgitations", "img/p/picot/ar-1.webp", "Picot AR 1er âge"], ["Pepti-Junior Caséine AR", "0-12 mois", "Hydrolysat poussé", "img/p/picot/pepti-junior-caseine-ar.webp", "Picot Pepti-Junior Hydrolysat de Caséine AR"], ["Pepti-Junior Riz", "0-12 mois", "Sans PLV", "img/p/picot/pepti-junior-riz.webp", "Picot Pepti-Junior Riz"], ["Pepti-Junior Riz AR", "0-12 mois", "Sans PLV", "img/p/picot/pepti-junior-riz-ar.webp", "Picot Pepti-Junior Riz AR"], ["Bio 1", "0-6 mois", "Bio", "img/p/picot/bio-1.webp", "Picot Bio 1er âge"], ["Bio 2", "6-12 mois", "Bio", "img/p/picot/bio-2.webp", "Picot Bio 2ème âge"], ["Croissance Bio", "12 mois et +", "Bio", "img/p/picot/croissance-bio.webp", "Picot Bio 3ème âge"], ["Bébé Gourmand 1", "0-6 mois", "Épaissi", "img/p/picot/bebe-gourmand-1.webp", "Picot Bébé Gourmand 1er âge"], ["Bébé Gourmand 2", "6-12 mois", "Épaissi", "img/p/picot/bebe-gourmand-2.webp", "Picot Bébé Gourmand 2ème âge"], ["Lémiel 1", "0-6 mois", "Épaissi", "img/p/picot/lemiel-1.webp", "Picot Lémiel 1er âge"], ["Lémiel 2", "6-12 mois", "Épaissi", "img/p/picot/lemiel-2.webp", "Picot Lémiel 2ème âge"], ["Lémiel 3", "12 mois et +", "Épaissi", "img/p/picot/lemiel-3.webp", "Picot Lémiel 3ème âge"]]}]}, {"libelle": "Marques bio", "marques": [{"nom": "Babybio", "logo": "img/m/babybio.webp", "produits": [["Primea 1", "0-6 mois", "", "img/p/babybio/primea-1.webp", "Babybio Primea 1er âge"], ["Primea 2", "6-12 mois", "", "img/p/babybio/primea-2.webp", "Babybio Primea 2ème âge"], ["Primea 3", "12 mois et +", "", "img/p/babybio/primea-3.webp", "Babybio Primea 3 Croissance"], ["Optima 1", "0-6 mois", "", "img/p/babybio/optima-1.webp", "Babybio Optima 1er âge"], ["Optima 2", "6-12 mois", "", "img/p/babybio/optima-2.webp", "Babybio Optima 2ème âge avec fibres"], ["Optima 3", "12 mois et +", "", "img/p/babybio/optima-3.webp", "Babybio Optima 3 Croissance avec fibres"], ["Caprea 1", "0-6 mois", "Lait de chèvre", "img/p/babybio/caprea-1.webp", "Babybio Caprea 1er âge au lait de chèvre"], ["Caprea 2", "6-12 mois", "Lait de chèvre", "img/p/babybio/caprea-2.webp", "Babybio Caprea 2ème âge au lait de chèvre"], ["Caprea 3", "12 mois et +", "Lait de chèvre", "img/p/babybio/caprea-3.webp", "Babybio Caprea 3 Croissance au lait de chèvre"], ["Optigest 1", "0-6 mois", "Épaissi", "img/p/babybio/optigest-1.webp", "Babybio Optigest 1er âge"], ["Optigest 2", "6-12 mois", "Épaissi", "img/p/babybio/optigest-2.webp", "Babybio Optigest 2ème âge"], ["Croissance liquide", "12 mois et +", "", "img/p/babybio/croissance-liquide.webp", "Babybio Croissance Liquide"]]}, {"nom": "Biostime", "logo": "img/m/biostime.webp", "produits": [["Bio Plus 1", "0-6 mois", "Bio", "img/p/biostime/bio-plus-1.webp", "Biostime Bio Plus 1er âge"], ["Bio Plus 2", "6-12 mois", "Bio", "img/p/biostime/bio-plus-2.webp", "Biostime Bio Plus 2ème âge"], ["Bio Plus 3", "12 mois et +", "Bio", "img/p/biostime/bio-plus-3.webp", "Biostime Bio Plus 3ème âge"], ["SN-2 Bio Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/biostime/sn-2-bio-chevre-1.webp", "Biostime SN-2 Bio Chèvre 1er âge"], ["SN-2 Bio Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/biostime/sn-2-bio-chevre-2.webp", "Biostime SN-2 Bio Chèvre 2ème âge"], ["SN-2 Bio Chèvre 3", "12 mois et +", "Lait de chèvre", "img/p/biostime/sn-2-bio-chevre-3.webp", "Biostime SN-2 Bio Chèvre 3ème âge"], ["AR Bio Plus 1", "0-6 mois", "Anti-régurgitations", "img/p/biostime/ar-bio-plus-1.webp", "Biostime AR Bio Plus 1"], ["AR Bio Plus 2", "6-12 mois", "Anti-régurgitations", "img/p/biostime/ar-bio-plus-2.webp", "Biostime AR Bio Plus 2"]]}, {"nom": "France Bébé Bio", "logo": "img/m/france-bebe-bio.webp", "produits": [["France Bébé Bio 1", "0-6 mois", "", "img/p/france-bebe-bio/france-bebe-bio-1.webp", "France BéBé Bio 1, lait infantile bio poudre 1er âge"], ["France Bébé Bio 2", "6-12 mois", "", "img/p/france-bebe-bio/france-bebe-bio-2.webp", "France BéBé Bio 2, lait infantile bio poudre 2ème âge"], ["France Bébé Bio 3", "12 mois et +", "", "img/p/france-bebe-bio/france-bebe-bio-3.webp", "France BéBé Bio 3 croissance, lait infantile bio poudre 3ème âge"]]}, {"nom": "Good Goût", "logo": "img/m/good-gout.webp", "produits": [["Good Goût 3", "12 mois et +", "", "img/p/good-gout/good-gout-3.webp", "Good Goût Lait de croissance Bio dès 10 mois"]]}, {"nom": "HiPP Bio", "logo": "img/m/hipp-bio.webp", "produits": [["Combiotic 1", "0-6 mois", "", "img/p/hipp-bio/combiotic-1.webp", "HiPP Biologique Lait 1 Combiotic FLM"], ["Combiotic 2", "6-12 mois", "", "img/p/hipp-bio/combiotic-2.webp", "HiPP Biologique Lait 2 Combiotic FLM"], ["Combiotic 3", "12 mois et +", "", "img/p/hipp-bio/combiotic-3.webp", "HiPP Biologique Lait 3 Croissance Combiotic FLM"], ["Essentia 1", "0-6 mois", "", "img/p/hipp-bio/essentia-1.webp", "HiPP Biologique Lait 1 Essentia"], ["Essentia 2", "6-12 mois", "", "img/p/hipp-bio/essentia-2.webp", "HiPP Biologique Lait 2 Essentia"], ["Essentia 3", "12 mois et +", "", "img/p/hipp-bio/essentia-3.webp", "HiPP Biologique Lait 3 Essentia Croissance"], ["Combiotic Nutrigest 1", "0-6 mois", "Épaissi", "img/p/hipp-bio/combiotic-nutrigest-1.webp", "HiPP Biologique Lait 1 Combiotic FLM Nutrigest, formule épaissie"], ["Combiotic Nutrigest 2", "6-12 mois", "Épaissi", "img/p/hipp-bio/combiotic-nutrigest-2.webp", "HiPP Biologique Lait 2 Combiotic Nutrigest, formule épaissie"], ["Combiotic Expert AR", "0-12 mois", "Anti-régurgitations", "img/p/hipp-bio/combiotic-expert-ar.webp", "HiPP Combiotic Expert Anti-Régurgitations"], ["Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/hipp-bio/chevre-1.webp", "HiPP Biologique Lait pour nourrissons au lait de chèvre 1"], ["Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/hipp-bio/chevre-2.webp", "HiPP Biologique Lait de suite au lait de chèvre 2"]]}, {"nom": "Holle", "logo": "img/m/holle.webp", "produits": [["Holle Bio 1", "0-6 mois", "", "img/p/holle/holle-bio-1.webp", "Holle Lait pour nourrissons 1 bio"], ["Holle Bio 2", "6-12 mois", "", "img/p/holle/holle-bio-2.webp", "Holle Lait de suite 2 bio"], ["Holle Bio 3", "12 mois et +", "", "img/p/holle/holle-bio-3.webp", "Holle Lait de suite 3 bio"], ["Holle Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/holle/holle-chevre-1.webp", "Holle Lait pour nourrissons 1 bio au lait de chèvre"], ["Holle Bio 4", "12 mois et +", "", "img/p/holle/holle-bio-4.webp", "Holle Lait de croissance 4 bio"], ["Holle Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/holle/holle-chevre-2.webp", "Holle Lait de suite 2 bio au lait de chèvre"], ["Holle Chèvre 3", "12 mois et +", "Lait de chèvre", "img/p/holle/holle-chevre-3.webp", "Holle Lait de suite 3 bio au lait de chèvre"], ["Holle Croissance 3 liquide", "12 mois et +", "", "img/p/holle/holle-croissance-3-liquide.webp", "Holle Lait de croissance bio liquide, Croissance 3"]]}, {"nom": "Junéo", "logo": "img/m/juneo.webp", "produits": [["Junéo 1", "0-6 mois", "", "img/p/juneo/juneo-1.webp", "Junéo bio vache 1er âge 0-6 mois"], ["Junéo 2", "6-12 mois", "", "img/p/juneo/juneo-2.webp", "Junéo bio vache 2ème âge 6-12 mois"], ["Junéo 3", "12 mois et +", "", "img/p/juneo/juneo-3.webp", "Junéo bio vache 3ème âge 10-36 mois"], ["Junéo Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/juneo/juneo-chevre-1.webp", "Junéo bio chèvre 1er âge 0-6 mois"], ["Junéo Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/juneo/juneo-chevre-2.webp", "Junéo bio chèvre 2ème âge 6-12 mois"], ["Junéo Chèvre 3", "12 mois et +", "Lait de chèvre", "img/p/juneo/juneo-chevre-3.webp", "Junéo bio chèvre 3ème âge 10-36 mois"]]}, {"nom": "Les Récoltes Bio", "logo": "img/m/les-recoltes-bio.webp", "produits": [["Les Récoltes Bio 3", "12 mois et +", "", "img/p/les-recoltes-bio/les-recoltes-bio-3.webp", "Blédina Les Récoltes Bio Croissance 3, lait de croissance liquide"]]}, {"nom": "Nactalia", "logo": "img/m/nactalia.webp", "produits": [["Nactalia 1", "0-6 mois", "", "img/p/nactalia/nactalia-1.webp", "Nactalia Bio 1er âge"], ["Nactalia 2", "6-12 mois", "", "img/p/nactalia/nactalia-2.webp", "Nactalia Bio 2e âge"], ["Nactalia 3", "12 mois et +", "", "img/p/nactalia/nactalia-3.webp", "Nactalia Bio 3e âge"]]}, {"nom": "Popote", "logo": "img/m/popote.webp", "produits": [["Popote 1", "0-6 mois", "", "img/p/popote/popote-1.webp", "Popote Le Lait 1er âge"], ["Popote Croissance", "12 mois et +", "", "img/p/popote/popote-croissance.webp", "Popote Le Lait 3ème âge Croissance"], ["Popote 2", "6-12 mois", "", "img/p/popote/popote-2.webp", "Popote Le Lait 2ème âge"]]}]}, {"libelle": "Laits de chèvre", "marques": [{"nom": "Capricare", "logo": "img/m/capricare.webp", "produits": [["Capricare 1", "0-6 mois", "Lait de chèvre", "img/p/capricare/capricare-1.webp", "Capricare 1er âge, lait pour nourrissons"], ["Capricare 2", "6-12 mois", "Lait de chèvre", "img/p/capricare/capricare-2.webp", "Capricare 2ème âge, lait de suite"], ["Capricare 3", "12 mois et +", "Lait de chèvre", "img/p/capricare/capricare-3.webp", "Capricare 3ème âge, lait de croissance"]]}, {"nom": "Kabrita", "logo": "img/m/kabrita.webp", "produits": [["Kabrita 1", "0-6 mois", "Lait de chèvre", "img/p/kabrita/kabrita-1.webp", "Kabrita 1 Lait infantile"], ["Kabrita 2", "6-12 mois", "Lait de chèvre", "img/p/kabrita/kabrita-2.webp", "Kabrita 2 Lait de suite"], ["Kabrita 3", "12 mois et +", "Lait de chèvre", "img/p/kabrita/kabrita-3.webp", "Kabrita 3 Lait de croissance"]]}, {"nom": "Pure Goat", "logo": "img/m/pure-goat.webp", "produits": [["Pure Goat 1", "0-6 mois", "Lait de chèvre", "img/p/pure-goat/pure-goat-1.webp", "Pure Goat BIO Préparation pour Nourrissons 1"], ["Pure Goat 2", "6-12 mois", "Lait de chèvre", "img/p/pure-goat/pure-goat-2.webp", "Pure Goat BIO Lait de Suite 2"], ["Pure Goat 3", "12 mois et +", "Lait de chèvre", "img/p/pure-goat/pure-goat-3.webp", "Pure Goat BIO Lait de Suite 3"]]}]}, {"libelle": "Préparations médicales, souvent sur ordonnance", "marques": [{"nom": "Alfamino", "logo": "img/m/alfamino.webp", "produits": [["Alfamino", "0-12 mois", "Acides aminés", "img/p/alfamino/alfamino.webp", "Alfamino HMO"]]}, {"nom": "Alfaré", "logo": "img/m/alfare.webp", "produits": [["Alfaré", "0-12 mois", "Hydrolysat poussé", "img/p/alfare/alfare.webp", "Alfaré HMO"]]}, {"nom": "Althéra", "logo": "img/m/althera.webp", "produits": [["Althéra", "0-12 mois", "Hydrolysat poussé", "img/p/althera/althera.webp", "Althéra HMO"]]}, {"nom": "Infatrini", "logo": "img/m/infatrini.webp", "produits": [["Infatrini", "0-12 mois", "Enrichi en énergie", "img/p/infatrini/infatrini.webp", "Nutricia Infatrini"], ["Infatrini Peptisorb", "0-12 mois", "Hydrolysat", "img/p/infatrini/infatrini-peptisorb.webp", "Nutricia Infatrini Peptisorb"]]}, {"nom": "Neocate", "logo": "img/m/neocate.webp", "produits": [["Neocate Syneo", "0-12 mois", "Acides aminés", "img/p/neocate/neocate-syneo.webp", "Gallia Bébé Expert Neocate 0-12 mois (avec SYNEO)"], ["Neocate Junior", "12 mois et +", "Acides aminés", "img/p/neocate/neocate-junior.webp", "Gallia Bébé Expert Neocate Junior"], ["Neocate H", "0-12 mois", "Acides aminés", "img/p/neocate/neocate-h.webp", "Gallia Bébé Expert Neocate H 0-12 mois"]]}, {"nom": "Novalac Allernova", "logo": "img/m/novalac-allernova.webp", "produits": [["Allernova AR", "0-12 mois", "Hydrolysat poussé", "img/p/novalac-allernova/allernova-ar.webp", "Novalac Expert Allernova AR"], ["Novalac Amina", "0-12 mois", "Acides aminés", "img/p/novalac-allernova/novalac-amina.webp", "Novalac Expert AminA"], ["Allernova", "0-12 mois", "Hydrolysat poussé", "img/p/novalac-allernova/allernova.webp", "Novalac Expert Allernova"], ["Novalac Riz", "0-12 mois", "Sans PLV", "img/p/novalac-allernova/novalac-riz.webp", "Novalac Expert Riz"], ["Novalac Riz AR", "0-12 mois", "Sans PLV", "img/p/novalac-allernova/novalac-riz-ar.webp", "Novalac Expert Riz AR"]]}, {"nom": "Nutramigen", "logo": "img/m/nutramigen.webp", "produits": [["Nutramigen 1 LGG", "0-6 mois", "Hydrolysat poussé", "img/p/nutramigen/nutramigen-1-lgg.webp", "Nutramigen 1 LGG"], ["Nutramigen 2 LGG", "6-12 mois", "Hydrolysat poussé", "img/p/nutramigen/nutramigen-2-lgg.webp", "Nutramigen 2 LGG"], ["Nutramigen Puramino", "0-12 mois", "Acides aminés", "img/p/nutramigen/nutramigen-puramino.webp", "Nutramigen Puramino"], ["Nutramigen 3 LGG", "12 mois et +", "Hydrolysat poussé", "img/p/nutramigen/nutramigen-3-lgg.webp", "Nutramigen 3 LGG"], ["Nutramigen Puramino Junior", "12 mois et +", "Acides aminés", "img/p/nutramigen/nutramigen-puramino-junior.webp", "Nutramigen Puramino Junior"]]}, {"nom": "Pepticate", "logo": "", "produits": [["Pepticate 1", "0-6 mois", "Hydrolysat poussé", "img/p/pepticate/pepticate-1.webp", "Gallia Bébé Expert Pepticate 1"], ["Pepticate 2", "6-12 mois", "Hydrolysat poussé", "img/p/pepticate/pepticate-2.webp", "Gallia Bébé Expert Pepticate 2"]]}]}];
 
-  var PDV = [
-    { nom: "Pharmacie du Marché", adr: "12 place du Marché", ville: "Ambérieu-en-Bugey",
-      d: 340, tel: "04 74 38 02 26", h: "Lun-Sam 8h30-19h30", ref: true },
-    { nom: "Pharmacie des Tilleuls", adr: "8 avenue des Tilleuls", ville: "Ambérieu-en-Bugey",
-      d: 720, tel: "04 74 38 11 04", h: "Lun-Ven 9h-19h · Sam 9h-12h30", ref: true },
-    { nom: "Parapharmacie Bellevue", adr: "3 rue Bellevue", ville: "Ambérieu-en-Bugey",
-      d: 1150, tel: "04 74 46 81 46", h: "Lun-Sam 9h30-19h", ref: false },
-    { nom: "Pharmacie de la Gare", adr: "45 avenue Roger Salengro", ville: "Ambérieu-en-Bugey",
-      d: 1900, tel: "04 74 35 04 15", h: "Lun-Sam 8h-20h", ref: true }
-  ];
+  var VERSION = "0.3.0";
 
-  /* Equivalences reprises telles quelles de la Societe Francaise de Pediatrie. */
+  /* Adresse a laquelle les points de vente envoient leur declaration pendant
+     la phase pilote. Volontairement vide : une adresse personnelle publiee
+     dans un depot public est aussitot aspiree par les robots de spam. */
+  var CONTACT_DECLARATIONS = "";
+
+  /* Equivalences reprises telles quelles de la Societe Francaise de Pediatrie,
+     « Alternatives aux preparations infantiles retirees du marche », 06/02/2026.
+     BIBE n'en construit aucune de son propre chef. */
   var EQUIV = {
-    "Gallia|Calisma 1": [["Guigoz","Ultima 1"],["Modilac","Doucéa 1"],["Nutriben","Innova 1"],["Novalac","Novalac 1"]],
-    "Gallia|Calisma 2": [["Guigoz","Ultima 2"],["Nutriben","Innova 2"],["Blédilait","Blédilait 2"],["Modilac","Doucéa 2"]]
+    "Gallia|Calisma 1": [["Guigoz","Ultima 1"],["Inostime","LPN HMO Plus 1"],["Modilac","Doucéa 1"],["Nutriben","Innova 1"]],
+    "Blédilait|Blédilait 1": [["Guigoz","Ultima 1"],["Inostime","LPN HMO Plus 1"],["Modilac","Doucéa 1"],["Nutriben","Innova 1"]],
+    "Guigoz|Optipro 1": [["Guigoz","Ultima 1"],["Inostime","LPN HMO Plus 1"],["Modilac","Doucéa 1"],["Nutriben","Innova 1"]],
+    "Nidal|Nidal 1": [["Guigoz","Ultima 1"],["Inostime","LPN HMO Plus 1"],["Modilac","Doucéa 1"],["Nutriben","Innova 1"]],
+    "Picot|Nutrition Quotidienne 1": [["Guigoz","Ultima 1"],["Inostime","LPN HMO Plus 1"],["Modilac","Doucéa 1"],["Nutriben","Innova 1"]],
+    "Gallia|Calisma 2": [["Guigoz","Ultima 2"],["Nutriben","Innova 2"]],
+    "Picot|Nutrition Quotidienne 2": [["Guigoz","Ultima 2"],["Nutriben","Innova 2"]],
+    "Gallia|Calisma Relais 1": [["Novalac","Relia 1"]],
+    "Gallia|Calisma Relais 2": [["Novalac","Relia 2"]],
+    "Guigoz|Gest 1": [["Blédilait","Premium 1 Formule épaissie"],["Gallia","Galliagest Premium 1"],["Modilac","Actigest 1"]],
+    "Nidal|Gest 1": [["Blédilait","Premium 1 Formule épaissie"],["Gallia","Galliagest Premium 1"],["Modilac","Actigest 1"]],
+    "Guigoz|Expert AR 1": [["Novalac","AR 0-36 mois"]],
+    "Guigoz|Expert AR 2": [["Novalac","AR 0-36 mois"]],
+    "Guigoz|Expert AR 1 Mix": [["Modilac","Expert AR 1"],["Novalac","AR Plus 1"]],
+    "Guigoz|Expert AR 2 Mix": [["Modilac","Expert AR 2"],["Novalac","AR Plus 2"]],
+    "Guigoz|Pelargon 1": [["Gallia","Bébé Expert AC Transit 1"],["Novalac","Transit 0-36 mois"]],
+    "Alfamino|Alfamino": [["Neocate","Neocate Syneo"],["Novalac Allernova","Novalac Amina"],["Nutramigen","Nutramigen Puramino"]]
   };
 
-  var MANQUES = [
-    { nb: 14, marque: "Novalac", produit: "AR Plus 2" },
-    { nb: 9, marque: "Modilac", produit: "Expert Riz 1" },
-    { nb: 6, marque: "Nutramigen", produit: "Nutramigen 1 LGG" }
-  ];
+  var ORDRE_AGES = ["0-6 mois", "6-12 mois", "0-12 mois", "12 mois et +"];
+  var RAYONS = [1, 3, 5, 10, 20];
+  var MIN_RESULTATS = 5;
+  var RAYON_MAX = 40;
 
-  var OFFICINE = { nom: "Pharmacie du Marché", adresse: "12 place du Marché, 01500 Ambérieu-en-Bugey",
-    tel: "04 74 38 02 26", finess: "010002285" };
-
-  var MARQUES = [];
+  // Produit : 0 nom, 1 age, 2 particularite, 3 vignette, 4 nom complet.
+  var MARQUES = [], PRODUITS = {};
   FAMILLES.forEach(function (f) { f.marques.forEach(function (m) { MARQUES.push(m); }); });
+  MARQUES.forEach(function (m) { m.produits.forEach(function (p) { PRODUITS[m.nom + "|" + p[0]] = p; }); });
 
-  var decl = {};
-  MARQUES.forEach(function (m) { decl[m.nom] = { coches: {}, nb: 0, absente: false }; });
-  [["Gallia",["Calisma 1","Calisma 2","Galliagest Premium 1"]],
-   ["Picot",["Nutrition Quotidienne 1","Nutrition Quotidienne 2"]],
-   ["Guigoz",["Optipro 1","Optipro 2","Expert AR 1"]],
-   ["Physiolac",["Physiolac 1"]]].forEach(function (p) {
-    var e = decl[p[0]]; if (!e) return;
-    p[1].forEach(function (n) { e.coches[n] = true; e.nb++; });
-  });
+  /* ================================================================== */
+  /* Stockage local, protege : Safari en navigation privee refuse        */
+  /* l'ecriture, et l'application doit continuer a fonctionner.          */
+  /* ================================================================== */
+
+  function lire(cle, defaut) {
+    try { var v = localStorage.getItem("bibe:" + cle); return v === null ? defaut : JSON.parse(v); }
+    catch (e) { return defaut; }
+  }
+  function ecrire(cle, v) {
+    try { localStorage.setItem("bibe:" + cle, JSON.stringify(v)); return true; }
+    catch (e) { return false; }
+  }
+
+  /* ================================================================== */
+  /* Etat                                                                 */
+  /* ================================================================== */
 
   var S = {
-    vue: "role", role: null,
-    // Un enfant = un prenom (facultatif tant qu'il est seul) et ses laits.
-    // Tant qu'il n'y en a qu'un, on ne demande aucun prenom : c'est une
-    // donnee de mineur qu'on evite de collecter sans raison.
-    enfants: [],
-    enfantActif: 0,
-    compte: null,
-    marqueOuverte: null, lait: null,
-    pdv: null, rayon: 3000, filtre: "", sombre: null
+    vue: "role",
+    role: lire("role", null),
+    sombre: null,
+    rayon: lire("rayon", 3),
+    lait: null,
+    marqueOuverte: null,
+    filtre: "",
+    position: null,
+    sourcePosition: null,
+    locEtat: null,
+    locMessage: "",
+    resultats: [],
+    total: 0,
+    rayonEffectif: null,
+    pdv: null,
+    retours: lire("retours", {}),
+    decl: {},
+    // Point de vente qui declare : choisi une fois, garde sur le telephone.
+    officine: lire("officine", null),
+    offRetour: "marques",
+    offEtat: null,
+    offMessage: "",
+    offListe: null,
+    offGps: false,
+    offLieu: "",
+    offFiltre: "",
+    offChoix: null
   };
 
-  function totalLaits() {
-    return S.enfants.reduce(function (n, e) { return n + e.laits.length; }, 0);
-  }
-  function plusieursEnfants() { return S.enfants.length > 1; }
+  MARQUES.forEach(function (m) { S.decl[m.nom] = { coches: {}, nb: 0, absente: false }; });
+
+  /* Une declaration commencee survit a une interruption (un client au
+     comptoir, l'app fermee par le telephone). Seules les references encore
+     presentes au catalogue sont reprises. */
+  (function () {
+    var d = lire("decl", null);
+    if (!d || typeof d !== "object") return;
+    MARQUES.forEach(function (m) {
+      var e = d[m.nom];
+      if (!e || typeof e !== "object") return;
+      var connues = {}, coches = {};
+      m.produits.forEach(function (p) { connues[p[0]] = true; });
+      Object.keys(e.coches || {}).forEach(function (n) { if (connues[n]) coches[n] = true; });
+      var nb = Object.keys(coches).length;
+      S.decl[m.nom] = { coches: coches, nb: nb, absente: !nb && !!e.absente };
+    });
+  })();
 
   var $e = document.getElementById("ecran");
   var $b = document.getElementById("bas");
 
   function $(i) { return document.getElementById(i); }
-  function ech(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-  function dist(m) { return m < 1000 ? m + " m" : (m/1000).toFixed(1).replace(".", ",") + " km"; }
-  function ini(s) { return s.slice(0,2).toUpperCase(); }
+  function ech(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
   function aplatir(s) {
-    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   }
 
-  var SOLEIL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
-  var LUNE = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  var minuterieToast = null;
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("visible");
+    clearTimeout(minuterieToast);
+    minuterieToast = setTimeout(function () { t.classList.remove("visible"); }, 2600);
+  }
 
-  function lireT() { try { return localStorage.getItem("bibe-theme"); } catch (e) { return null; } }
-  function ecrireT(v) { try { localStorage.setItem("bibe-theme", v); } catch (e) {} }
-  function appliquerT() { document.documentElement.dataset.theme = S.sombre ? "dark" : "light"; }
-  S.sombre = lireT() ? lireT() === "dark"
-    : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  appliquerT();
+  /* ================================================================== */
+  /* Theme                                                                */
+  /* ================================================================== */
+
+  var SOLEIL = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  var LUNE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+
+  function systemeSombre() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function appliquerTheme() {
+    document.documentElement.dataset.theme = S.sombre ? "dark" : "light";
+    var mt = document.querySelector('meta[name="theme-color"]:not([media])');
+    if (mt) mt.setAttribute("content", S.sombre ? "#0C1310" : "#F2F5F1");
+  }
+  var themeEnregistre = lire("theme", null);
+  S.sombre = themeEnregistre ? themeEnregistre === "dark" : systemeSombre();
+  appliquerTheme();
+
+  function basculerTheme() {
+    S.sombre = !S.sombre;
+    ecrire("theme", S.sombre ? "dark" : "light");
+    appliquerTheme();
+    rendre();
+  }
+
+  /* ================================================================== */
+  /* Donnees des points de vente                                          */
+  /* ================================================================== */
+
+  var PDV = null;
+  var chargementPdv = null;
+
+  // Champs : 0 nom, 1 adresse, 2 cp, 3 ville, 4 tel, 5 lat, 6 lon, 7 type, 8 horaires
+  function chargerPdv() {
+    if (PDV) return Promise.resolve(PDV);
+    if (chargementPdv) return chargementPdv;
+    chargementPdv = fetch("points-de-vente.json")
+      .then(function (r) {
+        if (!r.ok) throw new Error("http " + r.status);
+        return r.json();
+      })
+      .then(function (d) {
+        if (!d || !d.pdv || !d.pdv.length) throw new Error("vide");
+        PDV = d.pdv;
+        return PDV;
+      })
+      .catch(function (e) {
+        chargementPdv = null;
+        throw e;
+      });
+    return chargementPdv;
+  }
+
+  function distanceKm(lat1, lon1, lat2, lon2) {
+    var R = 6371, rad = Math.PI / 180;
+    var dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+  }
+
+  // Le fichier est trie par latitude : on ne parcourt que la bande utile.
+  function premierIndexLat(latMin) {
+    var lo = 0, hi = PDV.length;
+    while (lo < hi) {
+      var mid = (lo + hi) >> 1;
+      if (PDV[mid][5] < latMin) lo = mid + 1; else hi = mid;
+    }
+    return lo;
+  }
+
+  function chercherDans(lat, lon, rayonKm) {
+    var dLat = rayonKm / 111;
+    var cosLat = Math.cos(lat * Math.PI / 180) || 0.0001;
+    var dLon = rayonKm / (111 * cosLat);
+    var res = [];
+    for (var i = premierIndexLat(lat - dLat); i < PDV.length; i++) {
+      var p = PDV[i];
+      if (p[5] > lat + dLat) break;
+      if (Math.abs(p[6] - lon) > dLon) continue;
+      var d = distanceKm(lat, lon, p[5], p[6]);
+      if (d <= rayonKm) res.push({ p: p, d: d });
+    }
+    res.sort(function (a, b) { return a.d - b.d; });
+    return res;
+  }
+
+  /* Si le rayon choisi ne ramene presque rien (zone rurale), on elargit
+     automatiquement, et on le dit. Rendre une liste vide a un parent en
+     urgence n'est jamais la bonne reponse. */
+  function chercherAutour(lat, lon, rayonKm) {
+    var r = rayonKm;
+    var res = chercherDans(lat, lon, r);
+    while (res.length < MIN_RESULTATS && r < RAYON_MAX) {
+      r = Math.min(RAYON_MAX, r * 2);
+      res = chercherDans(lat, lon, r);
+    }
+    return { resultats: res.slice(0, 60), rayon: r, total: res.length };
+  }
+
+  /* Recherche manuelle par code postal ou par ville, sans aucun service
+     exterieur : la position est le barycentre des officines du lieu. */
+  var INDEX_LIEUX = null;
+  function indexLieux() {
+    if (INDEX_LIEUX) return INDEX_LIEUX;
+    var parCp = {}, parVille = {};
+    PDV.forEach(function (p) {
+      var cp = p[2], v = aplatir(p[3]);
+      if (cp) (parCp[cp] = parCp[cp] || []).push(p);
+      if (v) (parVille[v] = parVille[v] || []).push(p);
+    });
+    INDEX_LIEUX = { cp: parCp, ville: parVille };
+    return INDEX_LIEUX;
+  }
+
+  function barycentre(liste) {
+    var la = 0, lo = 0;
+    liste.forEach(function (p) { la += p[5]; lo += p[6]; });
+    return { lat: la / liste.length, lon: lo / liste.length };
+  }
+
+  /* Un code postal couvre souvent plusieurs communes. Le libelle affiche
+     la plus representee, pas la premiere venue : 01500 affichait
+     « St Denis en Bugey » alors que la position tombait sur Amberieu. */
+  function villeMajoritaire(liste) {
+    var compte = {}, meilleure = "", max = 0;
+    liste.forEach(function (p) {
+      var v = p[3];
+      if (!v) return;
+      compte[v] = (compte[v] || 0) + 1;
+      if (compte[v] > max) { max = compte[v]; meilleure = v; }
+    });
+    return meilleure;
+  }
+
+  function localiserTexte(texte) {
+    var t = aplatir(texte);
+    if (!t) return null;
+    var idx = indexLieux();
+
+    if (/^\d{5}$/.test(t)) {
+      var l = idx.cp[t];
+      if (l) return { pos: barycentre(l), libelle: t + " " + villeMajoritaire(l) };
+      // Code postal sans officine : on tente le departement. Outre-mer, il
+      // tient sur trois chiffres : « 97 » melangerait Guadeloupe et Reunion.
+      var dep = /^9[78]/.test(t) ? t.slice(0, 3) : t.slice(0, 2), dansDep = [];
+      Object.keys(idx.cp).forEach(function (c) { if (c.slice(0, dep.length) === dep) dansDep = dansDep.concat(idx.cp[c]); });
+      if (dansDep.length) return { pos: barycentre(dansDep), libelle: "département " + dep, approx: true };
+      return null;
+    }
+
+    var v = cleVille(t);
+    if (v) return { pos: barycentre(idx.ville[v]), libelle: idx.ville[v][0][3] };
+    return null;
+  }
+
+  // Cle de la ville saisie (texte deja aplati), ou null.
+  function cleVille(t) {
+    var idx = indexLieux();
+    if (idx.ville[t]) return t;
+    // Correspondance partielle : « saint etienne » trouve « Saint-Étienne ».
+    // Pas en dessous de trois lettres : « le » menait au Havre sans prevenir.
+    var cherche = t.replace(/[-']/g, " ").replace(/\s+/g, " ");
+    if (cherche.length < 3) return null;
+    var meilleur = null;
+    Object.keys(idx.ville).forEach(function (v) {
+      var vv = v.replace(/[-']/g, " ").replace(/\s+/g, " ");
+      if (vv === cherche || vv.indexOf(cherche) === 0) {
+        if (!meilleur || idx.ville[v].length > idx.ville[meilleur].length) meilleur = v;
+      }
+    });
+    return meilleur;
+  }
+
+  function idPdv(p) { return p[5] + "," + p[6]; }
+  function cleLait(l) { return l.marque + "|" + l.produit; }
+
+  // L'arrondi decide de l'unite, pas la valeur brute : 998 m donnait « 1000 m ».
+  function formaterDist(km) {
+    var m = Math.max(10, Math.round(km * 100) * 10);
+    if (m < 1000) return m + " m";
+    var k = Math.round(km * 10) / 10;
+    return (k < 10 ? k.toFixed(1) : String(Math.round(km))).replace(".", ",") + " km";
+  }
+
+  function telLien(tel) { return "tel:" + String(tel).replace(/[^\d+]/g, ""); }
+
+  /* Visuels : decoratifs (alt vide), le nom est toujours ecrit a cote.
+     Une image absente du telephone hors connexion disparait sans casser
+     la mise en page. */
+  function vignette(p) {
+    return p && p[3]
+      ? '<img class="vignette" src="' + ech(p[3]) + '" alt="" loading="lazy" decoding="async" width="56" height="56">'
+      : '<span class="vignette vide"></span>';
+  }
+  function bandeauLait(l) {
+    var p = PRODUITS[cleLait(l)];
+    return '<div class="bandeau-lait">' + (p && p[3] ? vignette(p) : "") + '<div><div class="m">' + ech(l.marque) +
+      '</div><div class="p">' + ech(l.produit) + "</div>" + (l.spec ? '<div class="s">' + ech(l.spec) + "</div>" : "") + "</div></div>";
+  }
+  document.addEventListener("error", function (ev) {
+    var t = ev.target;
+    if (t && t.tagName === "IMG") t.classList.add("rate");
+  }, true);
+
+  function ceLieu(p) { return p[7] === 1 ? "cette parapharmacie" : "cette pharmacie"; }
+
+  /* ================================================================== */
+  /* Geolocalisation                                                      */
+  /* ================================================================== */
+
+  var SANS_GEOLOC = "Votre téléphone ne permet pas la localisation. Indiquez une ville ou un code postal.";
+  var ECHEC_LISTE = "La liste des points de vente n'a pas pu être chargée. Vérifiez votre connexion et réessayez.";
+
+  // La position du telephone et la liste des points de vente, ensemble.
+  function positionEtListe() {
+    return Promise.all([
+      chargerPdv(),
+      new Promise(function (ok, ko) {
+        // Le refus est marque comme venant de la localisation : il peut
+        // arriver pendant que la liste se charge encore, et ne doit pas etre
+        // pris pour une panne de chargement.
+        navigator.geolocation.getCurrentPosition(ok, function (e) { ko({ geo: true, code: e && e.code }); }, {
+          enableHighAccuracy: false, timeout: 15000, maximumAge: 300000
+        });
+      })
+    ]).then(function (v) { return v[1].coords; });
+  }
+
+  function echecPosition(err) {
+    if (!err || !err.geo) return { etat: "donnees", message: ECHEC_LISTE };
+    if (err.code === 1) return { etat: "refus", message: "Vous n'avez pas autorisé la localisation. Indiquez une ville ou un code postal, ou autorisez BIBE dans les réglages de votre téléphone." };
+    if (err.code === 3) return { etat: "delai", message: "La localisation prend trop de temps. Réessayez, ou indiquez une ville ou un code postal." };
+    return { etat: "indispo", message: "Votre position n'a pas pu être déterminée. Indiquez une ville ou un code postal." };
+  }
+
+  function localiser() {
+    S.locEtat = "encours";
+    S.locMessage = "";
+    rendre();
+
+    if (!("geolocation" in navigator)) {
+      S.locEtat = "indispo";
+      S.locMessage = SANS_GEOLOC;
+      rendre();
+      return;
+    }
+
+    positionEtListe().then(function (c) {
+      S.position = { lat: c.latitude, lon: c.longitude };
+      S.sourcePosition = { type: "gps", precision: Math.round(c.accuracy || 0) };
+      lancerRecherche();
+    }).catch(function (err) {
+      var e = echecPosition(err);
+      S.locEtat = e.etat;
+      S.locMessage = e.message;
+      rendre();
+    });
+  }
+
+  function localiserManuel(texte) {
+    chargerPdv().then(function () {
+      var r = localiserTexte(texte);
+      if (!r) {
+        S.locEtat = "introuvable";
+        S.locMessage = "BIBE ne reconnaît pas « " + texte + " ». Essayez un code postal à cinq chiffres ou le nom exact de la ville.";
+        rendre();
+        return;
+      }
+      S.position = r.pos;
+      S.sourcePosition = { type: "manuel", libelle: r.libelle, approx: !!r.approx };
+      lancerRecherche();
+    }).catch(function () {
+      S.locEtat = "donnees";
+      S.locMessage = ECHEC_LISTE;
+      rendre();
+    });
+  }
+
+  function lancerRecherche() {
+    var r = chercherAutour(S.position.lat, S.position.lon, S.rayon);
+    S.resultats = r.resultats;
+    S.rayonEffectif = r.rayon;
+    S.total = r.total;
+    S.locEtat = null;
+    aller("resultats");
+  }
+
+  /* ================================================================== */
+  /* Identification du point de vente qui declare                         */
+  /* ================================================================== */
+
+  var MAX_CANDIDATS_AUTOUR = 12;
+  var MAX_LISTE_VILLE = 80;
+
+  function trierParNom(liste) {
+    return liste.slice().sort(function (a, b) { return aplatir(a[0]).localeCompare(aplatir(b[0]), "fr"); })
+      .map(function (p) { return { p: p, d: null }; });
+  }
+
+  /* Par code postal ou par ville : tous les points de vente du lieu, par
+     ordre alphabetique. Au comptoir, on cherche son nom, pas une distance
+     a un centre-ville calcule. */
+  function candidatsDuLieu(texte) {
+    var t = aplatir(texte), idx = indexLieux();
+    if (/^\d{5}$/.test(t)) {
+      if (!idx.cp[t]) return { erreur: "BIBE ne connaît aucun point de vente au " + t + ". Vérifiez le code postal, ou essayez le nom de votre ville." };
+      return { liste: trierParNom(idx.cp[t]), libelle: "au " + t };
+    }
+    var v = t ? cleVille(t) : null;
+    if (!v) return { erreur: "BIBE ne reconnaît pas « " + texte + " ». Essayez votre code postal à cinq chiffres." };
+    var l = idx.ville[v];
+    if (l.length > MAX_LISTE_VILLE) {
+      return { erreur: l[0][3] + " compte " + l.length + " points de vente : indiquez plutôt votre code postal." };
+    }
+    return { liste: trierParNom(l), libelle: "à " + l[0][3] };
+  }
+
+  function localiserOfficine() {
+    S.offEtat = "encours";
+    S.offMessage = "";
+    rendre();
+    if (!("geolocation" in navigator)) {
+      S.offEtat = null;
+      S.offMessage = SANS_GEOLOC;
+      rendre();
+      return;
+    }
+    positionEtListe().then(function (c) {
+      S.offEtat = null;
+      // Parti sur un autre ecran entre-temps : on ne l'y arrache pas.
+      if (S.vue !== "proOfficine") return;
+      S.offListe = chercherAutour(c.latitude, c.longitude, 1).resultats.slice(0, MAX_CANDIDATS_AUTOUR);
+      S.offGps = true;
+      S.offLieu = "";
+      S.offFiltre = "";
+      aller("proOfficineListe");
+    }).catch(function (err) {
+      S.offEtat = null;
+      S.offMessage = echecPosition(err).message;
+      if (S.vue === "proOfficine") rendre();
+    });
+  }
+
+  function chercherOfficine(texte) {
+    chargerPdv().then(function () {
+      var r = candidatsDuLieu(texte);
+      if (r.erreur) { S.offMessage = r.erreur; rendre(); return; }
+      S.offMessage = "";
+      S.offListe = r.liste;
+      S.offGps = false;
+      S.offLieu = r.libelle;
+      S.offFiltre = "";
+      aller("proOfficineListe");
+    }).catch(function () {
+      S.offMessage = ECHEC_LISTE;
+      rendre();
+    });
+  }
+
+  function adresseOfficine(o) {
+    return [o.adresse, [o.cp, o.ville].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  }
+
+  /* ================================================================== */
+  /* Ecrans                                                               */
+  /* ================================================================== */
 
   function haut(titre, versArriere) {
-    // L'etiquette de role est un bouton, dans les deux branches : un clic de
-    // travers a l'ouverture ne doit pas enfermer dans le mauvais parcours.
     var etiquette = S.role
-      ? '<button class="role-tag" data-role-reset="1" title="Changer de profil">' +
+      ? '<button class="role-tag" data-role-reset="1" aria-label="Changer de profil">' +
         (S.role === "pro" ? "Point de vente" : "Parent") + " ⌄</button>"
       : "";
     var g = versArriere
-      ? '<button class="retour" data-va="' + versArriere + '">← ' + ech(titre) + "</button>"
+      ? '<button class="retour" data-va="' + versArriere + '">‹ ' + ech(titre) + "</button>"
       : '<span class="logo">BIBE</span>' + etiquette;
-    return '<div class="haut">' + g + '<span class="haut-fin">' +
-      (versArriere ? etiquette : "") +
-      '<button class="rond" id="theme" aria-label="Changer de thème">' +
+    return '<div class="haut">' + g + '<span class="haut-fin">' + (versArriere ? etiquette : "") +
+      '<button class="rond" id="theme" aria-label="' + (S.sombre ? "Passer en mode clair" : "Passer en mode sombre") + '">' +
       (S.sombre ? SOLEIL : LUNE) + "</button></span></div>";
   }
 
-  function traitees() { return MARQUES.filter(function (m) { var e = decl[m.nom]; return e.absente || e.nb > 0; }).length; }
-  function totalRefs() { return MARQUES.reduce(function (t, m) { return t + decl[m.nom].nb; }, 0); }
-  function mqRetenues() { return MARQUES.filter(function (m) { return decl[m.nom].nb > 0; }).length; }
-
   var V = {};
-
-  /* ===================== Choix du role ===================== */
 
   V.role = function () {
     return haut() + "<h1>Vous êtes…</h1>" +
       '<p class="chapo">Cette question ne vous sera posée qu\'une fois.</p>' +
-      '<button class="role-carte" data-role="parent"><span class="t">Un parent</span>' +
-      '<span class="d">Trouver où acheter le lait de votre bébé, près de vous.</span></button>' +
-      '<button class="role-carte" data-role="pro"><span class="t">Un point de vente</span>' +
-      '<span class="d">Pharmacie ou parapharmacie : déclarez les laits que vous référencez ' +
-      "et apparaissez auprès des parents qui les cherchent.</span></button>" +
-      '<div class="aide">BIBE est gratuit dans les deux cas. Vous pourrez changer ' +
-      "depuis les réglages.</div>";
+      '<button class="carte-choix" data-role="parent"><span class="t">Un parent</span>' +
+      '<span class="d">Trouver les pharmacies et parapharmacies autour de vous, avec leur numéro et l\'itinéraire.</span></button>' +
+      '<button class="carte-choix" data-role="pro"><span class="t">Un point de vente</span>' +
+      '<span class="d">Pharmacie ou parapharmacie : déclarez les laits que vous référencez.</span></button>' +
+      '<div class="aide">BIBE est gratuit. Vous pourrez changer de profil à tout moment.</div>';
   };
 
-  /* ===================== Parcours parent ===================== */
+  /* ---------------- Parent ---------------- */
 
   V.accueil = function () {
-    var h = haut() + "<h1>Où trouver le lait de votre bébé ?</h1>";
-    if (totalLaits()) {
-      h += '<p class="chapo">Touchez un lait pour lancer la recherche.</p>';
-      S.enfants.forEach(function (en, ie) {
-        if (!en.laits.length) return;
-        if (plusieursEnfants()) {
-          h += '<p class="famille">' + ech(en.prenom || "Sans prénom") + "</p>";
-        }
-        en.laits.forEach(function (l, il) {
-          h += '<button class="carte-lait" data-lait="' + ie + ":" + il + '">' +
-            '<span class="vignette">' + ech(ini(l.marque)) + "</span>" +
-            '<span><span class="qui">' +
-            (plusieursEnfants() ? "Le lait de " + ech(en.prenom) : "Le lait de votre bébé") +
-            "</span><br>" +
-            '<span class="quoi">' + ech(l.produit) + "</span><br>" +
-            '<span class="marque">' + ech(l.marque) + "</span></span></button>";
-        });
-      });
-      h += '<button class="cta-2" data-va="marques">Chercher un autre lait</button>';
-    } else {
-      h += '<p class="chapo">Cherchez le lait de votre bébé et voyez qui le référence ' +
-        "autour de vous.</p>";
-      h += '<button class="cta" data-va="marques">Chercher un lait</button>';
-      h += '<div class="carte-lait fantome" style="margin-top:20px" aria-hidden="true">' +
-        '<span class="vignette">··</span>' +
-        '<span><span class="qui">Le lait de votre bébé</span><br>' +
-        '<span class="quoi">Calisma 2</span><br><span class="marque">Gallia</span></span></div>' +
-        '<p class="legende-fantome">Avec un compte, votre lait s\'affiche ici ' +
-        "et se relance en une touche.</p>";
-    }
-    h += '<div class="aide">BIBE indique les points de vente qui référencent ce lait. ' +
-      "Le stock n'est pas connu en temps réel : un appel reste le moyen le plus sûr " +
-      "de vérifier avant de se déplacer.</div>";
-
-    // Proposition du compte en bas de l'accueil : c'est ici que le parent
-    // comprend a quoi il sert. Jamais avant la recherche, qui doit rester
-    // accessible sans rien creer.
-    if (!S.compte) {
-      // Ne lister que ce que le mode invite ne sait PAS faire : memoriser un
-      // lait fonctionne deja sans compte, l'annoncer comme un avantage sonne
-      // faux et decredibilise le reste.
-      h += '<div class="encart-compte"><p class="encart-titre">Ce qu\'un compte ' +
-        "gratuit ajoute</p>" +
-        '<ul class="encart-liste">' +
-        "<li><b>Enregistrer le lait de votre bébé</b> et le relancer en une touche, " +
-        "au lieu de le rechercher à chaque fois.</li>" +
-        "<li><b>Un lait par enfant</b>, si vous en avez plusieurs.</li>" +
-        "<li><b>Être prévenu</b> si l'un de vos laits est rappelé ou devient " +
-        "introuvable près de chez vous.</li>" +
-        "<li><b>Partager vos laits</b> avec l'autre parent, sur son téléphone.</li>" +
-        "</ul>" +
-        '<button class="cta vert" data-va="compte">Créer mon compte gratuit</button>' +
-        '<p class="encart-pied">Sans compte, vous pouvez chercher autant que vous ' +
-        "voulez — mais rien n'est conservé d'une fois sur l'autre.</p></div>";
-    }
-    return h;
+    return haut() + "<h1>Où trouver le lait de votre bébé&nbsp;?</h1>" +
+      '<p class="chapo">Choisissez le lait, BIBE cherche les pharmacies et parapharmacies autour de vous.</p>' +
+      '<button class="cta" data-va="marques">Chercher un lait</button>' +
+      '<button class="cta-2" id="sans-lait">Voir les pharmacies autour de moi</button>' +
+      '<div class="aide"><b>Ce que BIBE sait aujourd\'hui :</b> où sont les pharmacies et ' +
+      "parapharmacies, leur numéro, leur adresse. <b>Ce qu'il ne sait pas encore :</b> " +
+      "lesquelles proposent votre lait. Appelez avant de vous déplacer.</div>";
   };
 
   V.marques = function () {
     var pro = S.role === "pro";
-    var h = haut("Retour", pro ? "proBord" : "accueil");
-    h += "<h1>" + (pro ? "Vos références" : "Quel lait ?") + "</h1>";
+    var h = haut("Retour", pro ? "proAccueil" : "accueil");
+    h += "<h1>" + (pro ? "Vos références" : "Quel lait&nbsp;?") + "</h1>";
     if (pro) {
-      h += '<p class="chapo">Ouvrez les marques que vous travaillez et cochez vos références.</p>' +
+      var t = traitees();
+      h += '<p class="chapo">Ouvrez les marques que vous travaillez, cochez vos références.</p>' +
         '<div class="avancement"><div class="jauge"><div class="jauge-remplie" style="width:' +
-        (traitees() / MARQUES.length * 100) + '%"></div></div><span class="compteur">' +
-        traitees() + " / " + MARQUES.length + "</span></div>";
+        (t / MARQUES.length * 100) + '%"></div></div><span class="compteur">' + t + " / " + MARQUES.length + "</span></div>";
     }
-    h += '<input class="recherche" id="filtre" placeholder="Marque, lait, ou besoin (AR, bio, chèvre…)" value="' +
-      ech(S.filtre) + '">';
+    h += '<input class="champ" id="filtre" type="search" autocomplete="off" enterkeyhint="search" ' +
+      'placeholder="Marque, lait ou besoin (AR, bio, chèvre…)" value="' + ech(S.filtre) + '">';
 
-    var q = aplatir(S.filtre.trim()), vide = true;
+    var q = aplatir(S.filtre), vide = true;
     FAMILLES.forEach(function (f) {
       var ms = f.marques.filter(function (m) {
         if (!q) return true;
-        if (aplatir(f.libelle).indexOf(q) >= 0) return true;
-        if (aplatir(m.nom).indexOf(q) >= 0) return true;
+        if (aplatir(f.libelle).indexOf(q) >= 0 || aplatir(m.nom).indexOf(q) >= 0) return true;
+        // Le nom complet compte aussi : « Blédigest » trouve le lait rangé
+        // sous son ancien nom, celui des équivalences SFP.
         return m.produits.some(function (p) {
-          return aplatir(p[0]).indexOf(q) >= 0 || aplatir(p[2]).indexOf(q) >= 0;
+          return aplatir(p[0]).indexOf(q) >= 0 || aplatir(p[2]).indexOf(q) >= 0 || aplatir(p[4]).indexOf(q) >= 0;
         });
       });
       if (!ms.length) return;
       vide = false;
       h += '<p class="famille">' + ech(f.libelle) + '</p><div class="grille">';
       ms.forEach(function (m) {
-        var e = decl[m.nom], et = "", lib = m.produits.length + " réf.";
-        if (pro) {
-          if (e.absente) { et = "absente"; lib = "non travaillée"; }
-          else if (e.nb > 0) { et = "fait"; lib = e.nb + " réf. cochées"; }
-        }
+        var e = S.decl[m.nom], et = "", lib = m.produits.length + " réf.";
+        if (pro && e.absente) { et = "absente"; lib = "non travaillée"; }
+        else if (pro && e.nb > 0) { et = "fait"; lib = e.nb + " cochée" + (e.nb > 1 ? "s" : ""); }
         h += '<button class="marque-carte" data-etat="' + et + '" data-marque="' + ech(m.nom) + '">' +
+          (m.logo ? '<span class="plaque"><img src="' + ech(m.logo) + '" alt="" loading="lazy" decoding="async"></span>' : "") +
           ech(m.nom) + '<span class="nb">' + lib + "</span></button>";
       });
       h += "</div>";
     });
     if (vide) h += '<div class="aide">Aucun résultat. Essayez le nom de la marque seule.</div>';
+    if (pro) {
+      h += '<button class="cta vert" data-va="proEnvoi"' + (totalRefs() ? "" : " disabled") + ">" +
+        "C'est bon pour moi</button>";
+    }
     return h;
   };
 
   V.produits = function () {
     var m = MARQUES.filter(function (x) { return x.nom === S.marqueOuverte; })[0];
-    var pro = S.role === "pro", e = decl[m.nom];
+    if (!m) return V.marques();
+    var pro = S.role === "pro", e = S.decl[m.nom];
+    // Une colonne de vignettes seulement si la marque a des photos.
+    var avecImg = m.produits.some(function (p) { return !!p[3]; });
     var h = haut("Marques", "marques") + "<h1>" + ech(m.nom) + "</h1>" +
-      '<p class="chapo">' + (pro ? "Cochez ce que vous avez habituellement en rayon."
-        : "Choisissez la référence exacte.") + "</p>";
-
-    ["0-6 mois","6-12 mois","0-12 mois","12 mois et +"].forEach(function (age) {
+      '<p class="chapo">' + (pro ? "Cochez ce que vous avez habituellement en rayon." : "Choisissez la référence exacte.") + "</p>";
+    ORDRE_AGES.forEach(function (age) {
       var g = m.produits.filter(function (p) { return p[1] === age; });
       if (!g.length) return;
       h += '<p class="groupe">' + age + "</p>";
       g.forEach(function (p) {
-        h += '<button class="ligne" data-produit="' + ech(p[0]) + '"' +
+        h += '<button class="ligne' + (avecImg ? " avec-vignette" : "") + '" data-produit="' + ech(p[0]) + '" data-spec="' + ech(p[2] || "") + '"' +
           (pro ? ' aria-pressed="' + (e.coches[p[0]] ? "true" : "false") + '"' : "") + ">" +
-          (pro ? '<span class="case">✓</span>' : "") +
-          '<span class="nom">' + ech(p[0]) + "</span>" +
-          (p[2] ? '<span class="spec">' + ech(p[2]) + "</span>" : "") + "</button>";
+          (pro ? '<span class="case">✓</span>' : "") + (avecImg ? vignette(p) : "") +
+          '<span class="noms"><span class="nom">' + ech(p[0]) + "</span>" +
+          (p[4] ? '<span class="complet">' + ech(p[4]) + "</span>" : "") +
+          (p[2] ? '<span class="spec">' + ech(p[2]) + "</span>" : "") + "</span></button>";
       });
     });
-
     if (pro) {
       h += '<button class="cta vert" data-va="marques">C\'est bon pour cette marque</button>' +
         '<button class="cta-2" id="absente">' +
-        (e.absente ? "Finalement, je travaille cette marque" : "Je ne travaille pas cette marque") +
-        "</button>";
+        (e.absente ? "Finalement, je travaille cette marque" : "Je ne travaille pas cette marque") + "</button>";
     }
+    return h;
+  };
+
+  V.localisation = function () {
+    var h = haut("Retour", S.lait ? "produits" : "accueil");
+    if (S.lait) h += bandeauLait(S.lait);
+    if (S.locEtat === "encours") {
+      return h + '<div class="etat-loc"><div class="roue" aria-hidden="true"></div>' +
+        "<h2>Recherche de votre position</h2>" +
+        '<p class="chapo">Autorisez la localisation si votre téléphone vous le demande.</p></div>';
+    }
+    h += "<h1>Où cherchez-vous&nbsp;?</h1>";
+    if (S.locMessage) h += '<div class="alerte">' + ech(S.locMessage) + "</div>";
+    h += '<button class="cta" id="me-localiser">Autour de moi</button>' +
+      '<p class="groupe" style="margin-top:24px">Ou autour d\'un lieu</p>' +
+      '<input class="champ" id="lieu" type="text" autocomplete="postal-code" enterkeyhint="search" ' +
+      'placeholder="Code postal ou ville">' +
+      '<button class="cta-2" id="chercher-lieu">Chercher autour de ce lieu</button>' +
+      '<div class="aide">Votre position sert uniquement à trier les pharmacies par distance. ' +
+      "Elle reste sur votre téléphone : BIBE ne l'envoie nulle part.</div>";
     return h;
   };
 
   V.resultats = function () {
-    var l = S.lait, liste = PDV.filter(function (p) { return p.d <= S.rayon; });
-    var h = haut("Retour", "accueil") +
-      '<div class="bandeau-lait"><div class="m">' + ech(l.marque) +
-      '</div><div class="p">' + ech(l.produit) + "</div></div>";
-    if (!liste.length) {
-      return h + '<div class="vide"><div class="vide-rond">· · ·</div>' +
-        "<h2>Personne ne le référence ici</h2>" +
-        '<p class="chapo">Aucun point de vente déclaré dans ce rayon.</p></div>' +
-        '<button class="cta" id="elargir">Élargir à 10 km</button>' +
-        '<button class="cta-2" data-va="equivalents">Voir les équivalents reconnus</button>';
+    var l = S.lait;
+    var h = haut("Retour", "accueil");
+    if (l) h += bandeauLait(l);
+
+    var src = S.sourcePosition;
+    var ou = src && src.type === "manuel" ? "autour de " + ech(src.libelle) : "autour de vous";
+    var n = S.resultats.length;
+
+    if (!n) {
+      return h + '<div class="question-bloc"><div class="vide-rond">·</div>' +
+        "<h2>Aucun point de vente trouvé</h2>" +
+        '<p class="chapo">Même à ' + RAYON_MAX + "&nbsp;km " + ou + ", BIBE ne connaît aucun point de vente.</p></div>" +
+        '<button class="cta-2" data-va="localisation">Chercher ailleurs</button>';
     }
-    var refs = liste.filter(function (p) { return p.ref; }).length;
-    h += "<h2>" + refs + " point" + (refs > 1 ? "s" : "") + " de vente le référence</h2>" +
-      '<p class="chapo">Dans un rayon de ' + dist(S.rayon) + ".</p>" +
-      '<div class="avert">Le stock n\'est pas connu en temps réel. Appelez avant de vous déplacer.</div>';
-    liste.forEach(function (p, i) {
-      h += '<button class="pdv" data-pdv="' + i + '"><span class="pdv-haut"><span>' +
-        '<span class="pdv-nom">' + ech(p.nom) + '</span><br><span class="pdv-adr">' +
-        ech(p.adr) + " · " + ech(p.ville) + '</span></span><span class="pdv-dist">' +
-        dist(p.d) + "</span></span>" +
-        (p.ref ? '<span class="etiquette ok">✓ Référence ce lait</span>'
-               : '<span class="etiquette inconnu">Référencement non déclaré</span>') + "</button>";
+
+    // La liste s'arrete aux 60 plus proches : en ville il y en a bien plus
+    // dans le rayon, et le compte affiche ne doit pas laisser croire le contraire.
+    h += '<p class="compte-res"><b>' + (S.total > n ? "Les " + n + " plus proches" :
+      n + " point" + (n > 1 ? "s" : "") + " de vente") + "</b> " + ou +
+      ", à moins de " + S.rayonEffectif + "&nbsp;km.</p>";
+
+    if (S.rayonEffectif > S.rayon) {
+      h += '<div class="alerte">Moins de ' + MIN_RESULTATS + " points de vente à moins de " + S.rayon +
+        "&nbsp;km : la recherche a été élargie à " + S.rayonEffectif + "&nbsp;km.</div>";
+    }
+
+    h += '<div class="rayons" role="group" aria-label="Rayon de recherche">';
+    RAYONS.forEach(function (r) {
+      h += '<button class="puce" data-rayon="' + r + '" aria-pressed="' + (S.rayon === r ? "true" : "false") + '">' + r + " km</button>";
     });
-    h += '<button class="cta-2" data-va="equivalents">Voir les équivalents de ce lait</button>';
-    // Le bon moment pour proposer le compte : le parent vient de trouver son
-    // lait, il sait maintenant ce qu'il aura a refaire la prochaine fois.
-    if (!S.compte) {
-      h += '<div class="aide">Vous devrez rechercher ce lait à chaque fois. ' +
-        "<b>Avec un compte gratuit</b>, il vous attend sur l'accueil." +
-        '<button class="cta vert" data-va="compte">Enregistrer ce lait</button></div>';
+    h += "</div>";
+
+    if (l) {
+      h += '<div class="alerte">BIBE ne sait pas encore quels points de vente proposent ce lait. ' +
+        "<b>Appelez avant de vous déplacer.</b></div>";
     }
+
+    S.resultats.forEach(function (r, i) {
+      var p = r.p, ret = l ? S.retours[idPdv(p) + "|" + cleLait(l)] : null;
+      h += '<button class="pdv" data-pdv="' + i + '"><span class="pdv-haut"><span>' +
+        '<span class="pdv-nom">' + ech(p[0]) + '</span><br><span class="pdv-adr">' +
+        ech([p[1], p[3]].filter(Boolean).join(", ")) + '</span></span><span class="pdv-dist">' +
+        formaterDist(r.d) + '</span></span><span class="etiquettes">';
+      if (ret && ret.v === "oui") h += '<span class="etiquette trouve">Trouvé ici le ' + ech(ret.date) + "</span>";
+      else if (ret && ret.v === "non") h += '<span class="etiquette absent">Absent le ' + ech(ret.date) + "</span>";
+      else if (l) h += '<span class="etiquette inconnu">Référencement non déclaré</span>';
+      if (p[7] === 1) h += '<span class="etiquette para">Parapharmacie</span>';
+      if (!p[4]) h += '<span class="etiquette para">Pas de numéro connu</span>';
+      h += "</span></button>";
+    });
+
+    if (l) h += '<button class="cta-2" data-va="equivalents">Voir les équivalents de ce lait</button>';
     return h;
   };
 
   V.fiche = function () {
-    var p = PDV[S.pdv];
-    return haut("Résultats", "resultats") + "<h1>" + ech(p.nom) + "</h1>" +
-      '<p class="chapo">' + ech(p.adr) + " · " + ech(p.ville) + "</p>" +
-      (p.ref ? '<span class="etiquette ok">✓ Référence ' + ech(S.lait.produit) + "</span>"
-             : '<span class="etiquette inconnu">Référencement non déclaré</span>') +
-      '<div class="fiche-actions"><button class="act-1" id="appeler">Appeler</button>' +
-      '<button class="act-2" id="yaller">Y aller</button></div>' +
-      '<div class="infos"><div class="info"><span class="k">Distance</span><span>' + dist(p.d) + "</span></div>" +
-      '<div class="info"><span class="k">Téléphone</span><span>' + ech(p.tel) + "</span></div>" +
-      '<div class="info"><span class="k">Horaires</span><span>' + ech(p.h) + "</span></div></div>";
+    var r = S.resultats[S.pdv];
+    if (!r) return V.resultats();
+    var p = r.p;
+    var h = haut("Résultats", "resultats") + "<h1>" + ech(p[0]) + "</h1>" +
+      '<p class="chapo">' + ech([p[1], [p[2], p[3]].filter(Boolean).join(" ")].filter(Boolean).join(", ")) + "</p>";
+    h += '<div class="fiche-actions">' +
+      (p[4] ? '<a class="act-1" id="appeler" href="' + telLien(p[4]) + '" style="text-align:center;text-decoration:none">Appeler</a>'
+            : '<button class="act-1" disabled>Pas de numéro</button>') +
+      '<button class="act-2" data-va="navigation">Y aller</button></div>';
+    h += '<div class="infos"><div class="info"><span class="k">Distance</span><span>' + formaterDist(r.d) + "</span></div>" +
+      '<div class="info"><span class="k">Téléphone</span><span>' +
+      (p[4] ? '<a href="' + telLien(p[4]) + '">' + ech(p[4]) + "</a>" : "Non renseigné") + "</span></div>" +
+      (p[8] ? '<div class="info"><span class="k">Horaires</span><span>' + ech(p[8]) + "</span></div>" : "") +
+      '<div class="info"><span class="k">Type</span><span>' + (p[7] === 1 ? "Parapharmacie" : "Pharmacie") + "</span></div></div>";
+    if (S.lait) {
+      h += '<button class="cta-2" data-va="retour">Dire si j\'ai trouvé mon lait ici</button>';
+    }
+    // Pas de source nommee ici : elle varie selon le point de vente (FINESS
+    // pour les pharmacies, OpenStreetMap ou SIRENE pour les parapharmacies,
+    // qui portent seules des horaires). Le detail est dans les Reglages.
+    h += '<div class="aide">Ces informations viennent de sources publiques et peuvent avoir changé' +
+      (p[4] ? " : un appel reste le moyen le plus sûr." : ".") + "</div>";
+    return h;
   };
 
   V.navigation = function () {
-    var p = PDV[S.pdv], q = encodeURIComponent(p.nom + ", " + p.adr + ", " + p.ville);
+    var r = S.resultats[S.pdv];
+    if (!r) return V.resultats();
+    var p = r.p, dest = p[5] + "," + p[6];
+    var q = encodeURIComponent([p[0], p[1], p[2], p[3]].filter(Boolean).join(", "));
     return haut("Fiche", "fiche") + "<h1>Y aller</h1>" +
-      '<p class="chapo">' + ech(p.nom) + " · " + dist(p.d) + "</p>" +
-      '<button class="ligne" data-nav="https://waze.com/ul?q=' + q + '&navigate=yes"><span class="nom">Waze</span></button>' +
-      '<button class="ligne" data-nav="https://www.google.com/maps/dir/?api=1&destination=' + q + '"><span class="nom">Google Maps</span></button>' +
-      '<button class="ligne" data-nav="https://maps.apple.com/?daddr=' + q + '"><span class="nom">Plans</span></button>' +
-      '<div class="aide">Sur un téléphone, l\'application choisie s\'ouvre directement ' +
-      "avec l'itinéraire.</div>" +
-      '<button class="cta-2" data-va="retour">J\'y suis allé, dire si je l\'ai trouvé</button>';
+      '<p class="chapo">' + ech(p[0]) + " · " + formaterDist(r.d) + "</p>" +
+      '<a class="ligne" href="https://maps.apple.com/?daddr=' + dest + "&q=" + q + '" target="_blank" rel="noopener"><span class="nom">Plans</span></a>' +
+      '<a class="ligne" href="https://www.google.com/maps/dir/?api=1&destination=' + dest + '" target="_blank" rel="noopener"><span class="nom">Google Maps</span></a>' +
+      '<a class="ligne" href="https://waze.com/ul?ll=' + dest + '&navigate=yes" target="_blank" rel="noopener"><span class="nom">Waze</span></a>' +
+      '<div class="aide">L\'application choisie s\'ouvre avec l\'itinéraire. Revenez ensuite dans BIBE pour dire si vous avez trouvé votre lait.</div>' +
+      (S.lait ? '<button class="cta-2" data-va="retour">Dire si j\'ai trouvé mon lait</button>' : "");
   };
 
   V.retour = function () {
-    var p = PDV[S.pdv];
-    return haut("Retour", "fiche") + '<div class="question-bloc"><h1>Ils l\'avaient ?</h1>' +
-      '<p class="chapo">' + ech(p.nom) + " · " + ech(S.lait.produit) + "</p>" +
-      '<div class="reponses"><button class="rep oui" data-rep="1">Oui</button>' +
-      '<button class="rep non" data-rep="0">Non</button></div></div>' +
-      '<button class="cta-2" data-va="resultats">Passer</button>';
+    var r = S.resultats[S.pdv];
+    if (!r || !S.lait) return V.resultats();
+    return haut("Fiche", "fiche") + '<div class="question-bloc"><h1>Ils l\'avaient&nbsp;?</h1>' +
+      '<p class="chapo">' + ech(r.p[0]) + "<br>" + ech(S.lait.marque) + " " + ech(S.lait.produit) + "</p>" +
+      '<div class="reponses"><button class="rep" data-rep="oui">Oui</button>' +
+      '<button class="rep" data-rep="non">Non</button></div></div>' +
+      '<div class="aide">Votre réponse reste sur votre téléphone. Elle s\'affichera sur ' + ceLieu(r.p) +
+      " la prochaine fois que vous chercherez ce lait.</div>";
   };
 
   V.merci = function () {
-    return haut("Retour", "resultats") + '<div class="question-bloc">' +
-      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
-      "<h1>Merci</h1><p class=\"chapo\">Votre retour aide les parents qui chercheront " +
-      "ce lait après vous.</p></div>" +
-      '<button class="cta" data-va="accueil">Revenir à l\'accueil</button>';
+    var r = S.resultats[S.pdv];
+    return haut("Résultats", "resultats") + '<div class="question-bloc"><div class="vide-rond ok">✓</div>' +
+      "<h1>C'est noté</h1><p class=\"chapo\">Vous le retrouverez sur " + (r ? ceLieu(r.p) : "ce point de vente") +
+      " la prochaine fois que vous chercherez ce lait.</p></div>" +
+      '<button class="cta vert" data-va="resultats">Revenir aux résultats</button>';
   };
 
   V.equivalents = function () {
-    var l = S.lait, eq = l ? EQUIV[l.marque + "|" + l.produit] : null;
-    var h = haut("Retour", l ? "resultats" : "accueil") + "<h1>Équivalents reconnus</h1>";
+    var l = S.lait, eq = l ? EQUIV[cleLait(l)] : null;
+    // La liste SFP date de février 2026 : un lait qui n'est plus au
+    // catalogue (plus vendu, ou écarté) ne doit pas envoyer le parent
+    // appeler des pharmacies pour rien. La source le dit en dessous.
+    if (eq) {
+      eq = eq.filter(function (x) { return !!PRODUITS[x[0] + "|" + x[1]]; });
+      if (!eq.length) eq = null;
+    }
+    var h = haut("Retour", "resultats") + "<h1>Équivalents reconnus</h1>";
     if (l) h += '<p class="chapo">À la place de ' + ech(l.marque) + " " + ech(l.produit) + ".</p>";
     if (eq) {
       eq.forEach(function (x) {
-        h += '<button class="equiv" data-eq="' + ech(x[0]) + "|" + ech(x[1]) + '">' +
-          '<span class="em">' + ech(x[0]) + '</span><br><span class="ep">' + ech(x[1]) + "</span></button>";
+        var p = PRODUITS[x[0] + "|" + x[1]];
+        h += '<button class="equiv' + (p && p[3] ? " avec-vignette" : "") + '" data-eq="' + ech(x[0]) + "|" + ech(x[1]) + '">' +
+          (p && p[3] ? vignette(p) + "<span>" : "") + '<span class="em">' +
+          ech(x[0]) + '</span><br><span class="ep">' + ech(x[1]) + "</span>" + (p && p[3] ? "</span>" : "") + "</button>";
       });
     } else {
-      h += '<div class="aide">Aucune équivalence publiée pour cette référence. ' +
-        "Votre pharmacien reste le mieux placé pour vous conseiller.</div>";
+      h += '<div class="aide">Aucune équivalence publiée pour cette référence. Votre pharmacien reste le mieux placé pour vous conseiller.</div>';
     }
-    h += '<div class="source"><b>Source :</b> Société Française de Pédiatrie, ' +
-      "« Alternatives aux préparations infantiles retirées du marché ». BIBE ne formule " +
-      "aucune recommandation médicale et ne construit aucune équivalence de son propre chef.</div>";
+    h += '<div class="source"><b>Source :</b> Société Française de Pédiatrie, « Alternatives aux préparations infantiles retirées du marché », version du 6 février 2026. ' +
+      "Seuls les laits de cette liste que BIBE retrouve en vente sont affichés. " +
+      "BIBE ne formule aucune recommandation médicale. Demandez toujours l'avis de votre pharmacien ou de votre pédiatre avant de changer de lait.</div>";
     return h;
   };
 
   V.mesLaits = function () {
-    var h = haut() + "<h1>Mes laits</h1>";
-
-    if (!S.compte) {
-      return h + '<p class="chapo">Enregistrer un lait demande un compte gratuit. ' +
-        "C'est ce qui permet de le retrouver, d'en avoir un par enfant, et d'être " +
-        "prévenu s'il est rappelé.</p>" +
-        '<div class="carte-lait fantome" aria-hidden="true"><span class="vignette">··</span>' +
-        '<span><span class="qui">Le lait de votre bébé</span><br>' +
-        '<span class="quoi">Calisma 2</span><br><span class="marque">Gallia</span></span></div>' +
-        '<p class="legende-fantome">Exemple — vos laits s\'afficheront ici.</p>' +
-        '<button class="cta vert" data-va="compte">Créer mon compte gratuit</button>' +
-        '<button class="cta-2" data-va="marques">Chercher sans compte</button>';
-    }
-
-    if (!totalLaits()) {
-      return h + '<p class="chapo">Aucun lait enregistré pour l\'instant.</p>' +
-        '<button class="cta" data-va="marques">Choisir mon lait</button>';
-    }
-
-    h += '<p class="chapo">' + (S.compte
-      ? "Synchronisés sur votre compte " + ech(S.compte.email) + "."
-      : "Enregistrés sur cet appareil. Aucun compte, aucune donnée envoyée.") + "</p>";
-
-    S.enfants.forEach(function (en, ie) {
-      if (plusieursEnfants()) {
-        h += '<p class="famille">' + ech(en.prenom || "Sans prénom") + "</p>";
-      }
-      en.laits.forEach(function (l, il) {
-        h += '<button class="carte-lait" data-lait="' + ie + ":" + il + '">' +
-          '<span class="vignette">' + ech(ini(l.marque)) + "</span>" +
-          '<span><span class="qui">' +
-          (plusieursEnfants() ? ech(en.prenom) : "Le lait de votre bébé") +
-          '</span><br><span class="quoi">' + ech(l.produit) +
-          '</span><br><span class="marque">' + ech(l.marque) + "</span></span></button>";
-      });
-      if (plusieursEnfants()) {
-        h += '<button class="cta-2" data-lait-pour="' + ie + '">Ajouter un lait pour ' +
-          ech(en.prenom) + "</button>";
-      }
-    });
-
-    if (!plusieursEnfants()) {
-      h += '<button class="cta-2" data-va="marques">Ajouter un lait</button>';
-    }
-    h += '<button class="cta-2" data-va="nouvelEnfant">Ajouter un enfant</button>';
-
-    if (!S.compte) {
-      h += '<div class="aide"><b>Un compte gratuit</b> vous prévient en cas de rappel, ' +
-        "partage vos laits avec l'autre parent et les conserve si vous changez de " +
-        "téléphone. Il n'est jamais obligatoire." +
-        '<button class="cta vert" data-va="compte">Créer un compte gratuit</button></div>';
-    }
-    return h;
-  };
-
-  V.nouvelEnfant = function () {
-    var premier = S.enfants.length === 1 && !S.enfants[0].prenom;
-    var h = haut("Mes laits", "mesLaits") + "<h1>Ajouter un enfant</h1>";
-    h += '<p class="chapo">' + (premier
-      ? "Pour distinguer leurs laits, donnez un prénom à chacun."
-      : "Le prénom sert uniquement à distinguer les listes de laits.") + "</p>";
-    if (premier) {
-      h += '<p class="groupe">Votre premier enfant</p>' +
-        '<input class="champ" id="prenom-1" placeholder="Prénom" value="">';
-      h += '<p class="groupe">Le nouveau</p>';
-    }
-    h += '<input class="champ" id="prenom-2" placeholder="Prénom">';
-    h += '<button class="cta vert" id="creer-enfant">Ajouter</button>';
-    h += '<div class="aide">Ces prénoms restent sur votre téléphone tant que vous ' +
-      "n'avez pas de compte. Vous pouvez mettre un surnom.</div>";
-    return h;
-  };
-
-  V.compte = function () {
-    return haut("Mes laits", "mesLaits") + "<h1>Compte gratuit</h1>" +
-      '<p class="chapo">Pour être prévenu d\'un rappel, partager vos laits avec ' +
-      "l'autre parent, et les retrouver en changeant de téléphone.</p>" +
-      '<input class="champ" id="mail-parent" type="email" placeholder="votre@email.fr" ' +
-      'value="parent@exemple.fr">' +
-      '<button class="cta vert" id="envoyer-code">Recevoir mon code</button>' +
-      '<div class="aide">Gratuit et sans engagement. Aucun mot de passe : ' +
-      "un code par email à chaque nouvelle connexion. Nous ne demandons jamais " +
-      "le nom ni la date de naissance de vos enfants.</div>";
-  };
-
-  V.compteCode = function () {
-    return haut("Retour", "compte") + "<h1>Votre code</h1>" +
-      '<p class="chapo">Envoyé à parent@exemple.fr.</p>' +
-      '<input class="champ code" maxlength="6" value="204517" inputmode="numeric">' +
-      '<button class="cta vert" id="valider-compte">Entrer</button>' +
-      '<div class="aide">Code pré-rempli pour la démonstration.</div>';
-  };
-
-  V.compteOk = function () {
-    return haut("Mes laits", "mesLaits") + '<div class="question-bloc">' +
-      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
-      "<h1>Compte créé</h1>" +
-      '<p class="chapo">' + (totalLaits()
-        ? "Votre recherche est enregistrée : ce lait vous attend désormais sur l'accueil."
-        : "Les laits que vous chercherez seront désormais conservés.") +
-      " Vous serez prévenu si l'un d'eux est rappelé.</p></div>" +
-      '<button class="cta vert" data-va="mesLaits">Revenir à mes laits</button>';
+    return haut() + "<h1>Mes laits</h1>" +
+      '<p class="chapo">Enregistrer le lait de votre bébé, en avoir un par enfant, être prévenu en cas de rappel : ' +
+      "tout cela demande un compte.</p>" +
+      '<div class="aide"><b>Les comptes arrivent avec la base de données de BIBE.</b> ' +
+      "En attendant, chaque recherche repart de zéro. Seules vos réponses « Ils l'avaient ? » restent sur ce téléphone, " +
+      "et rien n'est envoyé ailleurs.</div>" +
+      '<button class="cta" data-va="marques">Chercher un lait</button>';
   };
 
   V.reglages = function () {
-    return haut() + "<h1>Réglages</h1>" +
-      '<button class="reglage" id="theme2"><span>Apparence</span><span class="val">' +
-      (S.sombre ? "Sombre" : "Clair") + "</span></button>" +
-      '<div class="reglage"><span>Rayon par défaut</span><span class="val">' + dist(S.rayon) + "</span></div>" +
-      '<button class="reglage" data-va="' + (S.compte ? "mesLaits" : "compte") + '">' +
-      "<span>Compte</span><span class=\"val\">" +
-      (S.compte ? ech(S.compte.email) : "Invité — créer un compte") + "</span></button>" +
-      '<div class="reglage"><span>Enfants enregistrés</span><span class="val">' +
-      (S.enfants.length || "aucun") + "</span></div>" +
-      '<button class="reglage" data-role-reset="1"><span>Je suis…</span><span class="val">' +
-      (S.role === "pro" ? "Point de vente" : "Parent") + "</span></button>" +
-      '<div class="aide">En mode invité, vos laits restent sur votre téléphone. ' +
-      "BIBE ne collecte ni votre position ni vos recherches.</div>";
-  };
-
-  /* ===================== Parcours point de vente ===================== */
-
-  V.proConnexion = function () {
-    return haut() + "<h1>Votre espace</h1>" +
-      '<p class="chapo">Indiquez l\'adresse de votre établissement, nous vous envoyons ' +
-      "un code. Aucun mot de passe à retenir.</p>" +
-      '<input class="champ" type="email" value="contact@pharmacie-du-marche.fr">' +
-      '<button class="cta vert" data-va="proCode">Recevoir mon code</button>' +
-      '<div class="aide">BIBE est gratuit pour les pharmacies et parapharmacies. ' +
-      "Déclarer vos références prend moins de deux minutes.</div>";
-  };
-
-  V.proCode = function () {
-    return haut("Retour", "proConnexion") + "<h1>Votre code</h1>" +
-      '<p class="chapo">Envoyé à contact@pharmacie-du-marche.fr.</p>' +
-      '<input class="champ code" maxlength="6" value="481902" inputmode="numeric">' +
-      '<button class="cta vert" data-va="proBord">Entrer</button>' +
-      '<div class="aide">Code pré-rempli pour la démonstration.</div>';
-  };
-
-  V.proBord = function () {
-    var h = haut() + "<h1>" + ech(OFFICINE.nom) + "</h1>";
-    h += '<div class="bloc"><p class="bloc-titre">Vos références déclarées</p>' +
-      '<div class="chiffres"><div><span class="v">' + mqRetenues() + '</span><span class="l">marques</span></div>' +
-      '<div><span class="v">' + totalRefs() + '</span><span class="l">références</span></div></div>' +
-      '<p class="maj">Mis à jour le 14 février 2026.</p>' +
-      '<button class="cta vert" data-va="marques">Mettre à jour</button></div>';
-
-    h += '<div class="bloc manques"><p class="bloc-titre">Cherchés près de chez vous, non trouvés</p>';
-    MANQUES.forEach(function (m) {
-      h += '<div class="manque-ligne"><span class="manque-nb">' + m.nb + "</span><span>" +
-        '<span class="manque-lait">' + ech(m.produit) + '</span><br><span class="manque-marque">' +
-        ech(m.marque) + "</span></span></div>";
-    });
-    h += '<div class="encart-vente">Ces parents ont cherché ces références à moins d\'un ' +
-      "kilomètre ce mois-ci, sans trouver personne qui les déclare. Si vous les avez en " +
-      "rayon, un clic suffit à apparaître.</div></div>";
-
-    h += '<div class="bloc"><p class="bloc-titre">Ce mois-ci</p><div class="stats">' +
-      '<div class="stat"><span class="v">218</span><span class="l">apparitions</span></div>' +
-      '<div class="stat"><span class="v">47</span><span class="l">fiches ouvertes</span></div>' +
-      '<div class="stat"><span class="v">31</span><span class="l">appels lancés</span></div>' +
-      '<div class="stat"><span class="v">26</span><span class="l">itinéraires</span></div></div></div>';
-
-    h += '<div class="bloc"><p class="bloc-titre">Votre fiche</p>' +
-      '<div class="fiche-ligne"><span class="k">Adresse</span><span>' + ech(OFFICINE.adresse) + "</span></div>" +
-      '<div class="fiche-ligne"><span class="k">Téléphone</span><span>' + ech(OFFICINE.tel) + "</span></div>" +
-      '<div class="fiche-ligne"><span class="k">N° FINESS</span><span>' + ech(OFFICINE.finess) + "</span></div>" +
-      '<div class="aide">Ces informations proviennent du répertoire public FINESS.</div></div>';
-
-    h += '<button class="cta-2" data-va="proRelance">Voir la relance à six mois</button>';
+    var h = haut() + "<h1>Réglages</h1>" +
+      '<button class="reglage" id="theme2"><span>Apparence</span><span class="val">' + (S.sombre ? "Sombre" : "Clair") + "</span></button>" +
+      '<button class="reglage" id="rayon-defaut"><span>Rayon par défaut</span><span class="val">' + S.rayon + " km</span></button>" +
+      '<button class="reglage" data-role-reset="1"><span>Je suis…</span><span class="val">' + (S.role === "pro" ? "Point de vente" : "Parent") + "</span></button>";
+    if (S.role === "pro") {
+      var o = S.officine;
+      h += '<button class="reglage" data-officine="reglages"><span>Mon point de vente</span><span class="val">' +
+        (!o ? "Non indiqué" : o.absente ? "Hors de la liste" : ech(o.nom)) + "</span></button>";
+    }
+    var nb = Object.keys(S.retours).length;
+    if (nb) h += '<button class="reglage" id="effacer-retours"><span>Effacer mes réponses</span><span class="val">' + nb + "</span></button>";
+    h += '<div class="aide">Pharmacies : répertoire public des établissements de santé (FINESS). ' +
+      "Parapharmacies : OpenStreetMap et répertoire des entreprises (SIRENE). " +
+      "Votre position n'est jamais envoyée : la recherche se fait sur votre téléphone.</div>" +
+      '<p class="groupe" style="text-align:center;margin-top:24px">BIBE ' + ech(VERSION) + "</p>";
     return h;
   };
 
-  V.proRelance = function () {
-    var h = haut("Mon espace", "proBord") + '<div class="question-bloc">' +
-      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
-      "<h1>Rien n'a changé ?</h1>" +
-      '<p class="chapo">Voici ce que vous déclariez en février. Parcourez la liste : ' +
-      "si elle est toujours juste, un seul bouton suffit.</p></div>";
+  /* ---------------- Point de vente ---------------- */
+
+  function traitees() { return MARQUES.filter(function (m) { var e = S.decl[m.nom]; return e.absente || e.nb > 0; }).length; }
+  function totalRefs() { return MARQUES.reduce(function (t, m) { return t + S.decl[m.nom].nb; }, 0); }
+  function mqRetenues() { return MARQUES.filter(function (m) { return S.decl[m.nom].nb > 0; }).length; }
+  function compte(n, mot) { return n + " " + mot + (n > 1 ? "s" : ""); }
+  function resumeDecl() { return compte(totalRefs(), "référence") + " sur " + compte(mqRetenues(), "marque") + "."; }
+
+  // Le point de vente retenu, avec de quoi en changer. « retour » : l'ecran
+  // ou revenir une fois le choix fait.
+  function blocOfficine(retour) {
+    var o = S.officine;
+    if (!o) {
+      return '<div class="officine-carte"><div class="t">Votre point de vente</div>' +
+        '<div class="n">Pas encore indiqué</div>' +
+        '<button class="cta-2" data-officine="' + retour + '">Indiquer mon point de vente</button></div>';
+    }
+    if (o.absente) {
+      return '<div class="officine-carte"><div class="t">Votre point de vente</div>' +
+        '<div class="n">Absent de la liste publique</div>' +
+        '<div class="a">Ajoutez son nom, sa ville et son téléphone au message qui accompagne votre déclaration.</div>' +
+        '<button class="cta-2" data-officine="' + retour + '">Le chercher à nouveau</button></div>';
+    }
+    return '<div class="officine-carte"><div class="t">Votre point de vente</div>' +
+      '<div class="n">' + ech(o.nom) + '</div><div class="a">' + ech(adresseOfficine(o)) + "</div>" +
+      '<button class="cta-2" data-officine="' + retour + '">Changer de point de vente</button></div>';
+  }
+
+  V.proAccueil = function () {
+    var o = S.officine;
+    return haut() + "<h1>Votre espace</h1>" +
+      '<p class="chapo">Indiquez les laits infantiles que vous référencez. Moins de deux minutes, sans rien saisir.</p>' +
+      '<div class="alerte"><b>Phase pilote.</b> Le service n\'est pas encore ouvert aux parents. ' +
+      (CONTACT_DECLARATIONS ? "Votre déclaration nous est transmise à la fin, "
+        : "À la fin, vous copiez votre déclaration pour l'envoyer à la personne qui vous a présenté BIBE, ") +
+      "et vous serez parmi les premiers visibles au lancement.</div>" +
+      (o ? blocOfficine("proAccueil") : "") +
+      // Premiere fois : on passe d'abord par le choix du point de vente.
+      '<button class="cta vert" ' + (o ? 'data-va="marques"' : 'data-officine="marques"') + ">Déclarer mes références</button>" +
+      '<div class="aide">BIBE ne se connecte pas à votre logiciel d\'officine et n\'affiche jamais de stock. ' +
+      "Il indiquera aux parents quelles pharmacies référencent leur lait, et les invitera à vous appeler.</div>";
+  };
+
+  V.proOfficine = function () {
+    var h = haut("Retour", S.offRetour === "marques" ? "proAccueil" : S.offRetour) + "<h1>Votre point de vente</h1>";
+    if (S.offEtat === "encours") {
+      return h + '<div class="etat-loc"><div class="roue" aria-hidden="true"></div>' +
+        "<h2>Recherche de votre position</h2>" +
+        '<p class="chapo">Autorisez la localisation si votre téléphone vous le demande.</p></div>';
+    }
+    h += '<p class="chapo">BIBE le retrouve dans la liste publique des pharmacies et parapharmacies, pour que votre déclaration porte son nom.</p>';
+    if (S.offMessage) h += '<div class="alerte">' + ech(S.offMessage) + "</div>";
+    h += '<button class="cta vert" id="officine-geo">Je suis dans mon point de vente</button>' +
+      '<p class="groupe" style="margin-top:24px">Ou par code postal</p>' +
+      '<input class="champ" id="officine-lieu" type="text" autocomplete="postal-code" enterkeyhint="search" ' +
+      'placeholder="Code postal ou ville">' +
+      '<button class="cta-2" id="officine-chercher">Chercher</button>' +
+      '<div class="aide">Votre position sert seulement à retrouver votre point de vente dans la liste. ' +
+      "Elle reste sur votre téléphone.</div>";
+    return h;
+  };
+
+  V.proOfficineListe = function () {
+    var l = S.offListe;
+    if (!l) return V.proOfficine();
+    var h = haut("Retour", "proOfficine") + "<h1>Votre point de vente</h1>" +
+      '<p class="chapo">' + (S.offGps ? "Les plus proches de vous." :
+        "Les points de vente " + ech(S.offLieu) + ", par ordre alphabétique.") + " Touchez le vôtre.</p>";
+    if (l.length > MAX_CANDIDATS_AUTOUR) {
+      h += '<input class="champ" id="officine-filtre" type="search" autocomplete="off" enterkeyhint="search" ' +
+        'placeholder="Filtrer par nom ou par rue" value="' + ech(S.offFiltre) + '">';
+    }
+    var f = aplatir(S.offFiltre), n = 0;
+    l.forEach(function (r, i) {
+      var p = r.p;
+      if (f && aplatir(p[0] + " " + p[1]).indexOf(f) < 0) return;
+      n++;
+      h += '<button class="pdv" data-officine-choix="' + i + '"><span class="pdv-haut"><span>' +
+        '<span class="pdv-nom">' + ech(p[0]) + '</span><br><span class="pdv-adr">' +
+        ech([p[1], [p[2], p[3]].filter(Boolean).join(" ")].filter(Boolean).join(", ")) + "</span></span>" +
+        (r.d !== null ? '<span class="pdv-dist">' + formaterDist(r.d) + "</span>" : "") + "</span>" +
+        (p[7] === 1 ? '<span class="etiquettes"><span class="etiquette para">Parapharmacie</span></span>' : "") +
+        "</button>";
+    });
+    if (!n) h += '<div class="aide">Aucun point de vente de cette liste ne correspond à « ' + ech(S.offFiltre) + " ».</div>";
+    h += '<button class="cta-2" id="officine-absente">Le mien n\'est pas dans la liste</button>';
+    return h;
+  };
+
+  V.proOfficineOk = function () {
+    var r = S.offListe && S.offListe[S.offChoix];
+    if (!r) return V.proOfficine();
+    var p = r.p;
+    return haut("Liste", "proOfficineListe") + "<h1>C'est bien le vôtre&nbsp;?</h1>" +
+      '<div class="infos"><div class="info"><span class="k">Nom</span><span>' + ech(p[0]) + "</span></div>" +
+      '<div class="info"><span class="k">Adresse</span><span>' +
+      ech([p[1], [p[2], p[3]].filter(Boolean).join(" ")].filter(Boolean).join(", ")) + "</span></div>" +
+      '<div class="info"><span class="k">Téléphone</span><span>' + (p[4] ? ech(p[4]) : "Non renseigné") + "</span></div></div>" +
+      '<button class="cta vert" id="officine-oui">Oui, c\'est le mien</button>' +
+      '<button class="cta-2" data-va="proOfficineListe">Non, revenir à la liste</button>' +
+      '<div class="aide">Ces informations viennent de sources publiques. Si l\'une d\'elles a changé, ' +
+      "précisez-le en envoyant votre déclaration.</div>";
+  };
+
+  function recapitulatif() {
+    var o = S.officine, connue = o && !o.absente;
+    var lignes = ["Déclaration BIBE", ""];
+    if (connue) {
+      lignes.push(o.nom);
+      lignes.push(adresseOfficine(o));
+      lignes.push("Téléphone : " + (o.tel || ""));
+      lignes.push("");
+    }
     MARQUES.forEach(function (m) {
-      var e = decl[m.nom];
+      var e = S.decl[m.nom];
+      if (!e.nb) return;
+      var refs = m.produits.filter(function (p) { return e.coches[p[0]]; }).map(function (p) { return p[0]; });
+      lignes.push(m.nom + " : " + refs.join(", "));
+    });
+    var absentes = MARQUES.filter(function (m) { return S.decl[m.nom].absente; }).map(function (m) { return m.nom; });
+    if (absentes.length) { lignes.push(""); lignes.push("Marques non travaillées : " + absentes.join(", ")); }
+    lignes.push("");
+    lignes.push(resumeDecl());
+    // Sans point de vente reconnu, les trois lignes restent a remplir a la main.
+    if (!connue) {
+      lignes.push("");
+      lignes.push("Nom du point de vente :");
+      lignes.push("Ville :");
+      lignes.push("Téléphone :");
+    }
+    return lignes.join("\n");
+  }
+
+  V.proEnvoi = function () {
+    var h = haut("Mes références", "marques") + "<h1>Votre déclaration</h1>" +
+      '<p class="chapo">' + resumeDecl() + "</p>" + blocOfficine("proEnvoi");
+    MARQUES.forEach(function (m) {
+      var e = S.decl[m.nom];
       if (!e.nb) return;
       var refs = m.produits.filter(function (p) { return e.coches[p[0]]; })
-        .map(function (p) { return '<span class="puce">' + ech(p[0]) + "</span>"; }).join("");
-      h += '<div class="recap-marque"><div class="recap-nom">' + ech(m.nom) +
-        '<span class="recap-nb">' + e.nb + " réf.</span></div>" +
-        '<div class="recap-refs">' + refs + "</div></div>";
+        .map(function (p) { return '<span class="pastille">' + ech(p[0]) + "</span>"; }).join("");
+      h += '<div class="recap-marque"><div class="recap-nom">' + ech(m.nom) + '<span class="recap-nb">' + e.nb + ' réf.</span></div><div class="recap-refs">' + refs + "</div></div>";
     });
-    h += '<button class="cta vert" data-va="proConfirme">Oui, toujours à jour</button>' +
-      '<button class="cta-2" data-va="marques">Non, je corrige</button>';
+    if (CONTACT_DECLARATIONS) {
+      h += '<a class="cta vert" style="display:block;text-align:center;text-decoration:none;line-height:22px" href="mailto:' +
+        ech(CONTACT_DECLARATIONS) + "?subject=" + encodeURIComponent("Déclaration BIBE") +
+        "&body=" + encodeURIComponent(recapitulatif()) + '">Envoyer ma déclaration</a>';
+    }
+    // Sans adresse de contact, rien ne part de l'app : le texte ne doit pas
+    // laisser croire que la declaration a ete transmise.
+    h += '<button class="cta-2" id="copier-decl">Copier ma déclaration</button>' +
+      '<div class="aide">' + (CONTACT_DECLARATIONS
+        ? "Pendant la phase pilote, votre déclaration nous parvient par ce message. "
+        : "Pendant la phase pilote, copiez votre déclaration et envoyez-la à la personne qui vous a présenté BIBE. ") +
+      "Elle sera reprise dans votre espace dès son ouverture, vous n'aurez rien à refaire.</div>";
     return h;
   };
 
-  V.proConfirme = function () {
-    return haut("Retour", "proBord") + '<div class="question-bloc">' +
-      '<div class="vide-rond" style="background:var(--wash);color:var(--green)">✓</div>' +
-      "<h1>Merci</h1><p class=\"chapo\">Votre déclaration est confirmée pour six mois de plus.</p></div>" +
-      '<button class="cta vert" data-va="proBord">Revenir à mon espace</button>';
-  };
+  /* ================================================================== */
+  /* Navigation                                                           */
+  /* ================================================================== */
 
-  /* ===================== Navigation ===================== */
-
-  var ONGLETS_PARENT = [["accueil","Chercher"],["mesLaits","Mes laits"],["reglages","Réglages"]];
-  var ONGLETS_PRO = [["proBord","Mon espace"],["marques","Mes références"],["reglages","Réglages"]];
+  var ONGLETS_PARENT = [["accueil", "Chercher"], ["mesLaits", "Mes laits"], ["reglages", "Réglages"]];
+  var ONGLETS_PRO = [["proAccueil", "Mon espace"], ["marques", "Références"], ["reglages", "Réglages"]];
 
   function rendreBas() {
     var ong = S.role === "pro" ? ONGLETS_PRO : ONGLETS_PARENT;
-    var visibles = {};
-    ong.forEach(function (o) { visibles[o[0]] = 1; });
-    $b.style.display = (S.role && visibles[S.vue]) ? "flex" : "none";
+    var principal = ong.some(function (o) { return o[0] === S.vue; });
+    var visible = !!S.role && principal;
+    $b.style.display = visible ? "flex" : "none";
+    $e.classList.toggle("avec-bas", visible);
     $b.innerHTML = ong.map(function (o) {
-      return '<button class="onglet" data-va="' + o[0] + '" aria-current="' +
-        (S.vue === o[0] ? "true" : "false") + '">' + o[1] + "</button>";
+      return '<button class="onglet" data-va="' + o[0] + '" aria-current="' + (S.vue === o[0] ? "true" : "false") + '">' + o[1] + "</button>";
     }).join("");
   }
 
   function rendre() {
-    $e.innerHTML = V[S.vue]();
+    var fn = V[S.vue] || V.accueil;
+    $e.innerHTML = fn();
     $e.scrollTop = 0;
     rendreBas();
     brancher();
@@ -930,17 +1306,10 @@
 
   function aller(v) { S.vue = v; rendre(); }
 
-  function memoriser(l) {
-    // Sans compte, la recherche reste libre mais ne laisse aucune trace :
-    // memoriser un lait est precisement ce que le compte apporte.
-    if (!S.compte) return;
-    if (!S.enfants.length) S.enfants.push({ prenom: "", laits: [] });
-    var e = S.enfants[S.enfantActif] || S.enfants[0];
-    var deja = e.laits.some(function (x) { return x.marque === l.marque && x.produit === l.produit; });
-    if (!deja) e.laits.push({ marque: l.marque, produit: l.produit });
+  function aujourdhui() {
+    var d = new Date();
+    return ("0" + d.getDate()).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2);
   }
-
-  function basculer() { S.sombre = !S.sombre; ecrireT(S.sombre ? "dark" : "light"); appliquerT(); rendre(); }
 
   function brancher() {
     [$e, $b].forEach(function (z) {
@@ -949,63 +1318,22 @@
       });
     });
 
-    var t1 = $("theme"); if (t1) t1.addEventListener("click", basculer);
-    var t2 = $("theme2"); if (t2) t2.addEventListener("click", basculer);
+    var t1 = $("theme"); if (t1) t1.addEventListener("click", basculerTheme);
+    var t2 = $("theme2"); if (t2) t2.addEventListener("click", basculerTheme);
 
     $e.querySelectorAll("[data-role]").forEach(function (b) {
       b.addEventListener("click", function () {
         S.role = b.dataset.role;
-        aller(S.role === "pro" ? "proConnexion" : "accueil");
+        ecrire("role", S.role);
+        aller(S.role === "pro" ? "proAccueil" : "accueil");
       });
     });
-
     $e.querySelectorAll("[data-role-reset]").forEach(function (b) {
-      b.addEventListener("click", function () { S.role = null; aller("role"); });
+      b.addEventListener("click", function () { S.role = null; ecrire("role", null); aller("role"); });
     });
 
-    $e.querySelectorAll("[data-lait]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var p = b.dataset.lait.split(":");
-        S.enfantActif = +p[0];
-        S.lait = S.enfants[+p[0]].laits[+p[1]];
-        aller("resultats");
-      });
-    });
-
-    $e.querySelectorAll("[data-lait-pour]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        S.enfantActif = +b.dataset.laitPour;
-        aller("marques");
-      });
-    });
-
-    var creer = $("creer-enfant");
-    if (creer) creer.addEventListener("click", function () {
-      var p1 = $("prenom-1"), p2 = $("prenom-2");
-      if (p1 && p1.value.trim()) S.enfants[0].prenom = p1.value.trim();
-      var nom = p2 && p2.value.trim();
-      if (!nom) { p2.focus(); return; }
-      S.enfants.push({ prenom: nom, laits: [] });
-      S.enfantActif = S.enfants.length - 1;
-      aller("marques");
-    });
-
-    // L'adresse se lit sur l'ecran ou le champ existe encore, pas au suivant.
-    var ec = $("envoyer-code");
-    if (ec) ec.addEventListener("click", function () {
-      var m = $("mail-parent");
-      S.mailSaisi = (m && m.value.trim()) || "parent@exemple.fr";
-      aller("compteCode");
-    });
-
-    var vc = $("valider-compte");
-    if (vc) vc.addEventListener("click", function () {
-      S.compte = { email: S.mailSaisi || "parent@exemple.fr" };
-      // Le lait qu'on venait de chercher est retenu dans la foulee : le parent
-      // ne refait pas la recherche qu'il vient de faire.
-      if (S.lait) memoriser(S.lait);
-      aller("compteOk");
-    });
+    var sl = $("sans-lait");
+    if (sl) sl.addEventListener("click", function () { S.lait = null; S.locMessage = ""; aller("localisation"); });
 
     $e.querySelectorAll("[data-marque]").forEach(function (b) {
       b.addEventListener("click", function () { S.marqueOuverte = b.dataset.marque; aller("produits"); });
@@ -1015,49 +1343,145 @@
       b.addEventListener("click", function () {
         var n = b.dataset.produit;
         if (S.role === "pro") {
-          var e = decl[S.marqueOuverte];
+          var e = S.decl[S.marqueOuverte];
           if (e.coches[n]) { delete e.coches[n]; e.nb--; }
-          else { e.coches[n] = true; e.nb++; e.absente = false;
-            var a = $("absente"); if (a) a.textContent = "Je ne travaille pas cette marque"; }
+          else { e.coches[n] = true; e.nb++; e.absente = false; var a = $("absente"); if (a) a.textContent = "Je ne travaille pas cette marque"; }
           b.setAttribute("aria-pressed", e.coches[n] ? "true" : "false");
+          ecrire("decl", S.decl);
         } else {
-          S.lait = { marque: S.marqueOuverte, produit: n };
-          memoriser(S.lait);
-          aller("resultats");
+          S.lait = { marque: S.marqueOuverte, produit: n, spec: b.dataset.spec || "" };
+          S.locMessage = "";
+          aller("localisation");
         }
       });
     });
 
     var abs = $("absente");
     if (abs) abs.addEventListener("click", function () {
-      var e = decl[S.marqueOuverte];
+      var e = S.decl[S.marqueOuverte];
       e.absente = !e.absente;
-      if (e.absente) { e.coches = {}; e.nb = 0; aller("marques"); } else { rendre(); }
+      if (e.absente) { e.coches = {}; e.nb = 0; }
+      ecrire("decl", S.decl);
+      if (e.absente) aller("marques"); else rendre();
+    });
+
+    var ml = $("me-localiser"); if (ml) ml.addEventListener("click", localiser);
+
+    var cl = $("chercher-lieu"), champLieu = $("lieu");
+    function lancerLieu() {
+      var v = champLieu.value.trim();
+      if (!v) { champLieu.focus(); return; }
+      champLieu.blur();
+      localiserManuel(v);
+    }
+    if (cl) cl.addEventListener("click", lancerLieu);
+    if (champLieu) champLieu.addEventListener("keydown", function (ev) { if (ev.key === "Enter") lancerLieu(); });
+
+    $e.querySelectorAll("[data-rayon]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        S.rayon = +b.dataset.rayon;
+        ecrire("rayon", S.rayon);
+        var r = chercherAutour(S.position.lat, S.position.lon, S.rayon);
+        S.resultats = r.resultats; S.rayonEffectif = r.rayon; S.total = r.total;
+        rendre();
+      });
     });
 
     $e.querySelectorAll("[data-pdv]").forEach(function (b) {
       b.addEventListener("click", function () { S.pdv = +b.dataset.pdv; aller("fiche"); });
     });
 
-    $e.querySelectorAll("[data-eq]").forEach(function (b) {
-      b.addEventListener("click", function () {
-        var p = b.dataset.eq.split("|");
-        S.lait = { marque: p[0], produit: p[1] };
-        aller("resultats");
-      });
+    // Comme sur la maquette validee : apres l'appel, la question attend le
+    // parent. Le delai laisse le telephone ouvrir l'appel avant de changer d'ecran.
+    var ap = $("appeler");
+    if (ap && S.lait) ap.addEventListener("click", function () {
+      setTimeout(function () { if (S.vue === "fiche") aller("retour"); }, 800);
     });
 
     $e.querySelectorAll("[data-rep]").forEach(function (b) {
-      b.addEventListener("click", function () { aller("merci"); });
+      b.addEventListener("click", function () {
+        var r = S.resultats[S.pdv];
+        S.retours[idPdv(r.p) + "|" + cleLait(S.lait)] = { v: b.dataset.rep, date: aujourdhui() };
+        ecrire("retours", S.retours);
+        aller("merci");
+      });
     });
 
-    $e.querySelectorAll("[data-nav]").forEach(function (b) {
-      b.addEventListener("click", function () { window.open(b.dataset.nav, "_blank", "noopener"); });
+    $e.querySelectorAll("[data-eq]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var p = b.dataset.eq.split("|");
+        S.lait = { marque: p[0], produit: p[1], spec: "" };
+        if (S.position) lancerRecherche(); else aller("localisation");
+      });
     });
 
-    var ap = $("appeler"); if (ap) ap.addEventListener("click", function () { aller("retour"); });
-    var ya = $("yaller"); if (ya) ya.addEventListener("click", function () { aller("navigation"); });
-    var el = $("elargir"); if (el) el.addEventListener("click", function () { S.rayon = 10000; rendre(); });
+    var rd = $("rayon-defaut");
+    if (rd) rd.addEventListener("click", function () {
+      var i = RAYONS.indexOf(S.rayon);
+      S.rayon = RAYONS[(i + 1) % RAYONS.length];
+      ecrire("rayon", S.rayon);
+      rendre();
+    });
+
+    var er = $("effacer-retours");
+    if (er) er.addEventListener("click", function () { S.retours = {}; ecrire("retours", {}); toast("Vos réponses sont effacées"); rendre(); });
+
+    // Point de vente qui declare.
+    $e.querySelectorAll("[data-officine]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        S.offRetour = b.dataset.officine;
+        S.offEtat = null;
+        S.offMessage = "";
+        aller("proOfficine");
+      });
+    });
+    var og = $("officine-geo"); if (og) og.addEventListener("click", localiserOfficine);
+    var oc = $("officine-chercher"), champOff = $("officine-lieu");
+    function lancerOfficine() {
+      var v = champOff.value.trim();
+      if (!v) { champOff.focus(); return; }
+      champOff.blur();
+      chercherOfficine(v);
+    }
+    if (oc) oc.addEventListener("click", lancerOfficine);
+    if (champOff) champOff.addEventListener("keydown", function (ev) { if (ev.key === "Enter") lancerOfficine(); });
+    var of = $("officine-filtre");
+    if (of) of.addEventListener("input", function () {
+      S.offFiltre = of.value;
+      var pos = of.selectionStart;
+      rendre();
+      var nf = $("officine-filtre");
+      if (nf) { nf.focus(); try { nf.setSelectionRange(pos, pos); } catch (e) {} }
+    });
+    $e.querySelectorAll("[data-officine-choix]").forEach(function (b) {
+      b.addEventListener("click", function () { S.offChoix = +b.dataset.officineChoix; aller("proOfficineOk"); });
+    });
+    var oo = $("officine-oui");
+    if (oo) oo.addEventListener("click", function () {
+      var p = S.offListe[S.offChoix].p;
+      S.officine = { nom: p[0], adresse: p[1], cp: p[2], ville: p[3], tel: p[4], lat: p[5], lon: p[6], type: p[7] };
+      ecrire("officine", S.officine);
+      toast("Point de vente enregistré");
+      aller(S.offRetour || "marques");
+    });
+    var oa = $("officine-absente");
+    if (oa) oa.addEventListener("click", function () {
+      S.officine = { absente: true };
+      ecrire("officine", S.officine);
+      toast("Vous l'indiquerez avec votre déclaration");
+      aller(S.offRetour || "marques");
+    });
+
+    var cd = $("copier-decl");
+    if (cd) cd.addEventListener("click", function () {
+      var txt = recapitulatif();
+      var ok = function () { toast("Déclaration copiée"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(ok, function () { copierSecours(txt) ? ok() : toast("Copie impossible sur ce téléphone"); });
+      } else {
+        copierSecours(txt) ? ok() : toast("Copie impossible sur ce téléphone");
+      }
+    });
 
     var f = $("filtre");
     if (f) f.addEventListener("input", function () {
@@ -1065,31 +1489,60 @@
       var pos = f.selectionStart;
       rendre();
       var nf = $("filtre");
-      if (nf) { nf.focus(); nf.setSelectionRange(pos, pos); }
+      if (nf) { nf.focus(); try { nf.setSelectionRange(pos, pos); } catch (e) {} }
     });
   }
 
-  /* ---------- Ouverture ---------- */
+  function copierSecours(txt) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = txt; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ================================================================== */
+  /* Demarrage                                                            */
+  /* ================================================================== */
+
+  S.vue = S.role ? (S.role === "pro" ? "proAccueil" : "accueil") : "role";
 
   var splash = $("splash");
-  function fermerSplash() {
-    if (!splash) return;
-    splash.style.display = "none";
-    splash = null;
-  }
-  $("splash").addEventListener("click", fermerSplash);
-  setTimeout(fermerSplash, 1900);
+  function fermerSplash() { if (splash) { splash.style.display = "none"; splash = null; } }
+  splash.addEventListener("click", fermerSplash);
+  setTimeout(fermerSplash, 1400);
+
+  // Le fichier des pharmacies se telecharge en arriere-plan des l'ouverture,
+  // pour etre pret quand le parent lance sa premiere recherche.
+  chargerPdv().catch(function () { /* on reessaiera a la recherche */ });
+
+  window.BIBE_TEST = {
+    etat: S,
+    familles: FAMILLES,
+    equiv: EQUIV,
+    chercherAutour: function (a, b, c) { return chercherAutour(a, b, c); },
+    localiserTexte: function (t) { return localiserTexte(t); },
+    candidatsDuLieu: function (t) { return candidatsDuLieu(t); },
+    chargerPdv: chargerPdv,
+    distanceKm: distanceKm,
+    formaterDist: formaterDist,
+    telLien: telLien,
+    // Rejoue un premier lancement : sans cela, le cache du navigateur sert
+    // les donnees et le chemin d'echec n'est jamais parcouru par les tests.
+    oublierDonnees: function () { PDV = null; chargementPdv = null; INDEX_LIEUX = null; }
+  };
 
   rendre();
 })();
 </script>
 
 <script>
-// Service worker : sert l'application hors connexion et recupere la derniere
-// version des qu'un reseau est disponible.
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js").catch(function () { /* sans effet */ });
+    navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 }
 </script>
