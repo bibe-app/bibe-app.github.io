@@ -1,5 +1,5 @@
-// BIBE - service worker, version 0.4.1
-const CACHE = "bibe-0.4.1";
+// BIBE - service worker, version 0.4.2
+const CACHE = "bibe-0.4.2";
 const SOCLE = ["./", "./index.html", "./manifest.webmanifest",
                "./icone-192.png", "./icone-512.png", "./apple-touch-icon.png"];
 const DONNEES = "./points-de-vente.json";
