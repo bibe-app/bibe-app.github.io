@@ -14,7 +14,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <meta name="robots" content="noindex">
-<meta name="bibe-version" content="0.5.0">
+<meta name="bibe-version" content="0.6.0">
 </head>
 <body>
 <style>
@@ -529,6 +529,10 @@
   .etiquette { font-size: 12px; padding: 4px 9px; border-radius: 6px; font-weight: 600; }
   .etiquette.inconnu { background: var(--badge); color: var(--soft); font-weight: 500; }
   .etiquette.trouve { background: var(--accent-pale); color: var(--accent); }
+  /* Ce que le point de vente a declare lui-meme. « Non référencé » reste
+     neutre : c'est une information, pas une alerte. */
+  .etiquette.declare { background: var(--accent-pale); color: var(--accent); }
+  .etiquette.non-reference { background: var(--badge); color: var(--soft); }
   .etiquette.absent { background: var(--corail-wash); color: var(--corail); }
   .etiquette.para { background: var(--sunk); color: var(--faint); font-weight: 500; }
   .etiquette.ouvert { background: var(--accent-pale); color: var(--accent); }
@@ -626,7 +630,7 @@
 
   var FAMILLES = [{"cle": "courantes", "libelle": "Marques courantes", "marques": [{"nom": "Aptamil", "logo": "img/m/aptamil.webp", "produits": [["HN 25 1", "0-6 mois", "Sans lactose", "img/p/aptamil/hn-25-1.webp", "Aptamil HN 25 1"], ["Pronutra 1", "0-6 mois", "", "img/p/aptamil/pronutra-1.webp", "Aptamil Pronutra 1"], ["Pronutra Junior 12+ Vanille", "12 mois et +", "", "img/p/aptamil/pronutra-junior-12-vanille.webp", "Aptamil Pronutra Junior 12+ arôme vanille"], ["Pepti Syneo", "0-12 mois", "Hydrolysat poussé", "img/p/aptamil/pepti-syneo.webp", "Aptamil Pepti Syneo"], ["Pronutra Junior 18+ Vanille", "12 mois et +", "", "img/p/aptamil/pronutra-junior-18-vanille.webp", "Aptamil Pronutra Junior 18+ arôme vanille"], ["Bio 1", "0-6 mois", "Bio", "img/p/aptamil/bio-1.webp", "Aptamil Bio 1"], ["Bio Junior 12+", "12 mois et +", "Bio", "img/p/aptamil/bio-junior-12.webp", "Aptamil Bio Junior 12+"], ["Pronutra Junior 12+", "12 mois et +", "", "img/p/aptamil/pronutra-junior-12.webp", "Aptamil Pronutra Junior 12+"], ["Pronutra 3", "12 mois et +", "", "img/p/aptamil/pronutra-3.webp", "Aptamil Pronutra 3 lait de suite"], ["Bio 2", "6-12 mois", "Bio", "img/p/aptamil/bio-2.webp", "Aptamil Bio 2 lait de suite"], ["AR 2", "6-12 mois", "Anti-régurgitations", "img/p/aptamil/ar-2.webp", "Aptamil AR 2"], ["Bio Pre", "0-6 mois", "", "img/p/aptamil/bio-pre.webp", "Aptamil Bio Pre lait initial"], ["Pronutra 2", "6-12 mois", "", "img/p/aptamil/pronutra-2.webp", "Aptamil Pronutra 2 lait de suite"], ["Sensivia 2", "6-12 mois", "Confort digestif", "img/p/aptamil/sensivia-2.webp", "Aptamil Sensivia 2"], ["Sensivia 1", "0-6 mois", "Confort digestif", "img/p/aptamil/sensivia-1.webp", "Aptamil Sensivia 1"], ["AS Syneo", "0-12 mois", "Acides aminés", "img/p/aptamil/as-syneo.webp", "Aptamil AS Syneo"], ["Pregomin AS", "0-12 mois", "Acides aminés", "img/p/aptamil/pregomin-as.webp", "Aptamil Pregomin AS"], ["Nutribiotik 1", "0-6 mois", "", "img/p/aptamil/nutribiotik-1.webp", "Aptamil Nutribiotik 1"], ["Nutribiotik 3", "12 mois et +", "", "img/p/aptamil/nutribiotik-3.webp", "Aptamil Nutribiotik 3"], ["Profutura Duobiotik 1", "0-6 mois", "", "img/p/aptamil/profutura-duobiotik-1.webp", "Aptamil Profutura Duobiotik 1"], ["Profutura Duobiotik 2", "6-12 mois", "", "img/p/aptamil/profutura-duobiotik-2.webp", "Aptamil Profutura Duobiotik 2"], ["Profutura Duobiotik 3", "12 mois et +", "", "img/p/aptamil/profutura-duobiotik-3.webp", "Aptamil Profutura Duobiotik 3"]], "fab": "Nutricia (Danone)"}, {"nom": "Blédilait", "logo": "img/m/bledilait.webp", "produits": [["Blédilait 1", "0-6 mois", "", "img/p/bledilait/bledilait-1.webp", "Blédina Blédilait 1er âge"], ["Blédilait 2", "6-12 mois", "", "img/p/bledilait/bledilait-2.webp", "Blédina Blédilait 2ème âge"], ["Blédilait Croissance", "12 mois et +", "", "img/p/bledilait/bledilait-croissance.webp", "Blédina Blédilait Croissance+"], ["Premium 1 Formule épaissie", "0-6 mois", "Épaissi", "img/p/bledilait/premium-1-formule-epaissie.webp", "Blédina Blédilait Blédigest 1er âge"], ["Premium 2 Formule épaissie", "6-12 mois", "Épaissi", "img/p/bledilait/premium-2-formule-epaissie.webp", "Blédina Blédilait Blédigest 2ème âge"], ["Blédilait AR", "0-12 mois", "Anti-régurgitations", "img/p/bledilait/bledilait-ar.webp", "Blédina Blédilait Anti-Régurgitations (AR) 0-12 mois"], ["Blédilait Junior", "12 mois et +", "", "img/p/bledilait/bledilait-junior.webp", "Blédina Blédilait Junior+"]], "fab": "Danone"}, {"nom": "Candia Baby", "logo": "img/m/candia-baby.webp", "produits": [["Baby 2", "6-12 mois", "", "img/p/candia-baby/baby-2.webp", "Candia Baby 2ème âge"], ["Baby Croissance", "12 mois et +", "", "img/p/candia-baby/baby-croissance.webp", "Candia Baby Croissance 3"], ["Baby 1", "0-6 mois", "", "img/p/candia-baby/baby-1.webp", "Candia Baby 1er âge"], ["Baby Expert 3", "12 mois et +", "Source de fibres (FOS/GOS)", "img/p/candia-baby/baby-expert-3.webp", "Candia Baby Expert 3"], ["Baby Croissance Chocolat", "12 mois et +", "Aromatisé chocolat", "img/p/candia-baby/baby-croissance-chocolat.webp", "Candia Baby Croissance 3 Chocolat"], ["Baby Junior 4", "12 mois et +", "", "img/p/candia-baby/baby-junior-4.webp", "Candia Baby Junior 4"]], "fab": "Candia"}, {"nom": "France Lait", "logo": "img/m/france-lait.webp", "produits": [["France Lait 1", "0-6 mois", "", "", ""], ["France Lait 2", "6-12 mois", "", "img/p/france-lait/france-lait-2.webp", "France Lait Gold 2"], ["France Lait 3", "12 mois et +", "", "img/p/france-lait/france-lait-3.webp", "France Lait Gold 3"]], "fab": "France Lait"}, {"nom": "Gallia", "logo": "img/m/gallia.webp", "produits": [["Calisma 1", "0-6 mois", "", "img/p/gallia/calisma-1.webp", "Gallia Calisma 1er âge"], ["Calisma 2", "6-12 mois", "", "img/p/gallia/calisma-2.webp", "Gallia Calisma 2ème âge"], ["Calisma Relais 1", "0-6 mois", "", "img/p/gallia/calisma-relais-1.webp", "Gallia Calisma Relais 1er âge"], ["Calisma Relais 2", "6-12 mois", "", "img/p/gallia/calisma-relais-2.webp", "Gallia Calisma Relais 2ème âge"], ["Calisma Croissance", "12 mois et +", "", "img/p/gallia/calisma-croissance.webp", "Gallia Calisma Croissance"], ["Calisma Junior", "12 mois et +", "", "img/p/gallia/calisma-junior.webp", "Gallia Calisma Junior"], ["Galliagest Premium 1", "0-6 mois", "Confort digestif", "img/p/gallia/galliagest-premium-1.webp", "Gallia Galliagest Premium 1er âge"], ["Galliagest Premium 2", "6-12 mois", "Confort digestif", "img/p/gallia/galliagest-premium-2.webp", "Gallia Galliagest Premium 2ème âge"], ["Galliagest Croissance", "12 mois et +", "Confort digestif", "img/p/gallia/galliagest-croissance.webp", "Gallia Galliagest Croissance"], ["Bébé Expert AR amidon", "0-12 mois", "Anti-régurgitations", "img/p/gallia/bebe-expert-ar-amidon.webp", "Gallia Bébé Expert AR Amidon 0-12 mois"], ["Bébé Expert AR Caroube 2", "6-12 mois", "Anti-régurgitations", "img/p/gallia/bebe-expert-ar-caroube-2.webp", "Gallia Bébé Expert AR Caroube 2ème âge"], ["Bébé Expert AC Transit 1", "0-6 mois", "Transit", "img/p/gallia/bebe-expert-ac-transit-1.webp", "Gallia Bébé Expert AC Transit 3en1 1er âge"], ["Procesa 1", "0-6 mois", "Nés par césarienne", "img/p/gallia/procesa-1.webp", "Gallia Procesa 1er âge"], ["Procesa 2", "6-12 mois", "Nés par césarienne", "img/p/gallia/procesa-2.webp", "Gallia Procesa 2ème âge"], ["Calisma Bio 1", "0-6 mois", "Bio", "img/p/gallia/calisma-bio-1.webp", "Gallia Calisma Bio 1er âge"], ["Calisma Bio 2", "6-12 mois", "Bio", "img/p/gallia/calisma-bio-2.webp", "Gallia Calisma Bio 2ème âge"], ["Calisma Bio Croissance", "12 mois et +", "Bio", "img/p/gallia/calisma-bio-croissance.webp", "Gallia Calisma Bio Croissance"], ["Bébé Expert AR Caroube 1", "0-6 mois", "Anti-régurgitations", "img/p/gallia/bebe-expert-ar-caroube-1.webp", "Gallia Bébé Expert AR Caroube 1er âge"], ["Bébé Expert AC Transit 2", "6-12 mois", "Transit", "img/p/gallia/bebe-expert-ac-transit-2.webp", "Gallia Bébé Expert AC Transit 3en1 2ème âge"], ["Bébé Expert Diargal", "0-12 mois", "Sans lactose", "img/p/gallia/bebe-expert-diargal.webp", "Gallia Bébé Expert Diargal 0-12 mois"], ["Bébé Expert Riz", "0-12 mois", "Sans PLV", "img/p/gallia/bebe-expert-riz.webp", "Gallia Bébé Expert Riz"], ["Bébé Expert Pré-Gallia", "0-12 mois", "Prématurés", "img/p/gallia/bebe-expert-pre-gallia.webp", "Gallia Bébé Expert Pré-Gallia"]], "fab": "Danone"}, {"nom": "Guigoz", "logo": "img/m/guigoz.webp", "produits": [["Optipro 1", "0-6 mois", "", "img/p/guigoz/optipro-1.webp", "Guigoz Optipro 1 lait 1er âge"], ["Optipro 2", "6-12 mois", "", "img/p/guigoz/optipro-2.webp", "Guigoz Optipro 2 lait 2ème âge"], ["Optipro 3 Croissance", "12 mois et +", "", "img/p/guigoz/optipro-3-croissance.webp", "Guigoz Optipro Croissance lait de croissance"], ["Ultima 1", "0-6 mois", "", "img/p/guigoz/ultima-1.webp", "Guigoz Ultima 1 lait 1er âge"], ["Ultima 2", "6-12 mois", "", "img/p/guigoz/ultima-2.webp", "Guigoz Ultima 2 lait 2ème âge"], ["Relais 1", "0-6 mois", "", "img/p/guigoz/relais-1.webp", "Guigoz Optipro Relais 1 lait 1er âge"], ["Gest 1", "0-6 mois", "Épaissi", "img/p/guigoz/gest-1.webp", "GuigozGest 1 formule épaissie lait 1er âge"], ["Digest Plus", "0-12 mois", "Confort digestif", "img/p/guigoz/digest-plus.webp", "Guigoz Expert Digest+ Triple Action"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-1.webp", "Guigoz Expert AR 1 anti-régurgitations"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-2.webp", "Guigoz Expert AR 2 anti-régurgitations"], ["Expert AR 1 Mix", "0-6 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-1-mix.webp", "Guigoz Expert AR Mix 1 anti-régurgitations"], ["Expert AR 2 Mix", "6-12 mois", "Anti-régurgitations", "img/p/guigoz/expert-ar-2-mix.webp", "Guigoz Expert AR Mix 2 anti-régurgitations"], ["Pelargon 1", "0-6 mois", "Acidifié (ferments lactiques)", "img/p/guigoz/pelargon-1.webp", "Guigoz Pelargon 1 lait 1er âge"], ["Relais 2", "6-12 mois", "", "img/p/guigoz/relais-2.webp", "Guigoz Optipro Relais 2 lait de suite"], ["Bio 1", "0-6 mois", "Bio", "img/p/guigoz/bio-1.webp", "Guigoz Bio 1 lait 1er âge"], ["Expert Riz", "0-12 mois", "Sans PLV", "img/p/guigoz/expert-riz.webp", "Guigoz Expert Riz alternative végétale"], ["Expert Diagoz", "0-12 mois", "Sans lactose", "img/p/guigoz/expert-diagoz.webp", "Guigoz Expert Diagoz sans lactose"], ["Ultima Pré", "0-12 mois", "Prématurés", "img/p/guigoz/ultima-pre.webp", "Guigoz UltimaPré"], ["Gest 2", "6-12 mois", "Épaissi", "img/p/guigoz/gest-2.webp", "Guigoz Gest 2 lait 2ème âge formule épaissie"], ["Pelargon 2", "6-12 mois", "Acidifié (ferments lactiques)", "img/p/guigoz/pelargon-2.webp", "Guigoz Pelargon 2 lait 2ème âge"], ["Bio 2", "6-12 mois", "Bio", "img/p/guigoz/bio-2.webp", "Guigoz Bio 2 lait 2ème âge"], ["Optipro 4 Junior", "12 mois et +", "", "img/p/guigoz/optipro-4-junior.webp", "Guigoz Optipro Junior lait 4ème âge"], ["Relais 3 Croissance", "12 mois et +", "", "img/p/guigoz/relais-3-croissance.webp", "Guigoz Optipro Relais 3 lait de croissance"], ["Ultima 3 Croissance", "12 mois et +", "", "img/p/guigoz/ultima-3-croissance.webp", "Guigoz Ultima 3 Croissance"], ["Gest 3 Croissance", "12 mois et +", "", "img/p/guigoz/gest-3-croissance.webp", "Guigoz Gest 3 lait de croissance"], ["Pelargon 3 Croissance", "12 mois et +", "Acidifié (ferments lactiques)", "img/p/guigoz/pelargon-3-croissance.webp", "Guigoz Pelargon 3 lait 3ème âge"], ["Bio 3 Croissance", "12 mois et +", "Bio", "img/p/guigoz/bio-3-croissance.webp", "Guigoz Bio 3 lait de croissance"]], "fab": "Nestlé"}, {"nom": "Inostime", "logo": "img/m/inostime.webp", "produits": [["LPN HMO Plus 1", "0-6 mois", "", "img/p/inostime/lpn-hmo-plus-1.webp", "Inostime LPN HMO Plus 1er âge"], ["LPN HMO Plus 2", "6-12 mois", "", "img/p/inostime/lpn-hmo-plus-2.webp", "Inostime LPN HMO Plus 2ème âge"], ["LPN HMO Plus 3", "12 mois et +", "", "img/p/inostime/lpn-hmo-plus-3.webp", "Inostime LPN HMO Plus 3ème âge (lait de croissance)"], ["HMO AR Plus 1", "0-6 mois", "Anti-régurgitations", "img/p/inostime/hmo-ar-plus-1.webp", "Inostime HMO AR Plus 1"], ["HMO AR Plus 2", "6-12 mois", "Anti-régurgitations", "img/p/inostime/hmo-ar-plus-2.webp", "Inostime HMO AR Plus 2"]], "fab": "Health & Happiness"}, {"nom": "Lactel Éveil", "logo": "img/m/lactel-eveil.webp", "produits": [["Éveil Croissance", "12 mois et +", "", "img/p/lactel-eveil/eveil-croissance.webp", "Lactel Éveil Croissance Nature"], ["Éveil 2ème âge", "6-12 mois", "", "img/p/lactel-eveil/eveil-2eme-age.webp", "Lactel Éveil 2ème âge Nature"], ["Éveil Croissance Bio", "12 mois et +", "Bio", "img/p/lactel-eveil/eveil-croissance-bio.webp", "Lactel Éveil Croissance BIO"], ["Éveil Croissance Immunitaire", "12 mois et +", "", "img/p/lactel-eveil/eveil-croissance-immunitaire.webp", "Lactel Éveil Croissance Système Immunitaire"], ["Éveil Junior Croissance Osseuse", "12 mois et +", "", "img/p/lactel-eveil/eveil-junior-croissance-osseuse.webp", "Lactel Éveil Junior Croissance osseuse"]], "fab": "Lactalis"}, {"nom": "Milsani", "logo": "img/m/milsani.webp", "produits": [["Croissance 3", "12 mois et +", "", "img/p/milsani/croissance-3.webp", "Milsani 3 Croissance Nature"]], "fab": "ALDI"}, {"nom": "Modilac", "logo": "img/m/modilac.webp", "produits": [["Doucéa 1", "0-6 mois", "", "img/p/modilac/doucea-1.webp", "Modilac Doucéa Lf+ 1"], ["Doucéa 2", "6-12 mois", "", "img/p/modilac/doucea-2.webp", "Modilac Doucéa Lf+ 2"], ["Précision 1", "0-6 mois", "", "img/p/modilac/precision-1.webp", "Modilac Précision 1"], ["Précision 2", "6-12 mois", "", "img/p/modilac/precision-2.webp", "Modilac Précision 2"], ["Actigest 1", "0-6 mois", "Confort digestif", "img/p/modilac/actigest-1.webp", "Modilac Actigest Lf+ 1"], ["Actigest 2", "6-12 mois", "Confort digestif", "img/p/modilac/actigest-2.webp", "Modilac Actigest Lf+ 2"], ["Expert AR 1", "0-6 mois", "Anti-régurgitations", "img/p/modilac/expert-ar-1.webp", "Modilac Expert AR 1"], ["Expert AR 2", "6-12 mois", "Anti-régurgitations", "img/p/modilac/expert-ar-2.webp", "Modilac Expert AR 2"], ["Expert Riz 1", "0-6 mois", "Sans PLV", "img/p/modilac/expert-riz-1.webp", "Modilac Expert Riz 1"], ["Expert Riz 2", "6-12 mois", "Sans PLV", "img/p/modilac/expert-riz-2.webp", "Modilac Expert Riz 2"], ["Doucéa Croissance", "12 mois et +", "", "img/p/modilac/doucea-croissance.webp", "Modilac Doucéa+ Croissance"], ["Actigest Croissance", "12 mois et +", "Confort digestif", "img/p/modilac/actigest-croissance.webp", "Modilac Actigest+ Croissance"], ["Expert AR Bio", "0-12 mois", "Anti-régurgitations", "img/p/modilac/expert-ar-bio.webp", "Modilac Expert AR Bio"], ["Expert Riz Croissance", "12 mois et +", "Sans PLV", "img/p/modilac/expert-riz-croissance.webp", "Modilac Expert Riz Croissance"], ["Expert Riz AR 1", "0-6 mois", "Sans PLV", "img/p/modilac/expert-riz-ar-1.webp", "Modilac Expert Riz AR 1"], ["Expert Riz AR 2", "6-12 mois", "Sans PLV", "img/p/modilac/expert-riz-ar-2.webp", "Modilac Expert Riz AR 2"], ["Expert Riz AR Croissance", "12 mois et +", "Sans PLV", "img/p/modilac/expert-riz-ar-croissance.webp", "Modilac Expert Riz AR Croissance"], ["Expert Préma", "0-6 mois", "Prématurés", "img/p/modilac/expert-prema.webp", "Modilac Expert Préma"], ["Mon Petit Bio 1", "0-6 mois", "Bio", "img/p/modilac/mon-petit-bio-1.webp", "Modilac Mon petit Bio Lf+ 1"], ["Mon Petit Bio 2", "6-12 mois", "Bio", "img/p/modilac/mon-petit-bio-2.webp", "Modilac Mon petit Bio Lf+ 2"], ["Mon Petit Bio Croissance", "12 mois et +", "Bio", "img/p/modilac/mon-petit-bio-croissance.webp", "Modilac Mon petit Bio+ Croissance"], ["Expert Peptipro", "0-12 mois", "Hydrolysat", "", ""], ["Expert Peptipro AR", "0-12 mois", "Hydrolysat", "", ""]], "fab": "Sodilac"}, {"nom": "Nan", "logo": "img/m/nan.webp", "produits": [["OptiPro DHA 1", "0-6 mois", "", "img/p/nan/optipro-dha-1.webp", "Nan OptiPro DHA 1"], ["OptiPro 2", "6-12 mois", "", "img/p/nan/optipro-2.webp", "Nan OptiPro 2 lait de suite"], ["OptiPro 3", "12 mois et +", "", "img/p/nan/optipro-3.webp", "Nan OptiPro 3 lait de croissance"], ["OptiPro 4", "12 mois et +", "", "img/p/nan/optipro-4.webp", "Nan OptiPro 4 lait de croissance"], ["OptiPro 5", "12 mois et +", "", "img/p/nan/optipro-5.webp", "Nan OptiPro 5 lait de croissance"], ["OptiPro Satiété 1", "0-6 mois", "Épaissi", "img/p/nan/optipro-satiete-1.webp", "Nan OptiPro Satiété 1 lait épaissi pour nourrissons"], ["OptiPro Satiété 2", "6-12 mois", "Épaissi", "img/p/nan/optipro-satiete-2.webp", "Nan OptiPro Satiété 2 lait de suite épaissi"], ["OptiPro Satiété 3", "12 mois et +", "Épaissi", "img/p/nan/optipro-satiete-3.webp", "Nan OptiPro Satiété 3 lait de croissance épaissi"], ["Evolia DHA 1", "0-6 mois", "", "img/p/nan/evolia-dha-1.webp", "Nan Evolia DHA 1"], ["Evolia 2", "6-12 mois", "", "img/p/nan/evolia-2.webp", "Nan Evolia 2 lait de suite"], ["Evolia 3", "12 mois et +", "", "img/p/nan/evolia-3.webp", "Nan Evolia 3 lait de croissance"], ["ExpertPro A.R.", "0-12 mois", "Anti-régurgitations", "img/p/nan/expertpro-a-r.webp", "Nan ExpertPro A.R. formule épaissie"], ["ExpertPro Complete", "0-12 mois", "Confort digestif", "img/p/nan/expertpro-complete.webp", "Nan ExpertPro Complete"], ["ExpertPro Complete Croissance", "12 mois et +", "Confort digestif", "img/p/nan/expertpro-complete-croissance.webp", "Nan ExpertPro Complete lait de croissance"], ["ExpertPro Sans Lactose", "0-12 mois", "Sans lactose", "img/p/nan/expertpro-sans-lactose.webp", "Nan ExpertPro sans lactose"], ["Sinergity 1", "0-6 mois", "", "img/p/nan/sinergity-1.webp", "Nan Sinergity 1"], ["Sinergity 2", "6-12 mois", "", "img/p/nan/sinergity-2.webp", "Nan Sinergity 2"], ["Sinergity 3", "12 mois et +", "", "img/p/nan/sinergity-3.webp", "Nan Sinergity 3"]], "fab": "Nestlé"}, {"nom": "Nidal", "logo": "img/m/nidal.webp", "produits": [["Nidal 1", "0-6 mois", "", "img/p/nidal/nidal-1.webp", "Nestlé Nidal 1 lait 1er âge"], ["Nidal 2", "6-12 mois", "", "img/p/nidal/nidal-2.webp", "Nestlé Nidal 2 lait 2ème âge"], ["Nidal Croissance", "12 mois et +", "", "img/p/nidal/nidal-croissance.webp", "Nestlé Nidal Croissance 3 lait de croissance"], ["Gest 1", "0-6 mois", "Épaissi", "img/p/nidal/gest-1.webp", "Nestlé NidalGest 1 formule épaissie lait 1er âge"], ["Gest 2", "6-12 mois", "Épaissi", "img/p/nidal/gest-2.webp", "Nestlé NidalGest 2 formule épaissie lait 2ème âge"]], "fab": "Nestlé"}, {"nom": "Novalac", "logo": "img/m/novalac.webp", "produits": [["Novalac 1", "0-6 mois", "", "img/p/novalac/novalac-1.webp", "Novalac 1"], ["Novalac 2", "6-12 mois", "", "img/p/novalac/novalac-2.webp", "Novalac 2"], ["Novalac 3 Croissance", "12 mois et +", "", "img/p/novalac/novalac-3-croissance.webp", "Novalac 3 Croissance"], ["Relia 1", "0-6 mois", "", "img/p/novalac/relia-1.webp", "Novalac Relia 1"], ["Relia 2", "6-12 mois", "", "img/p/novalac/relia-2.webp", "Novalac Relia 2"], ["AR 0-36 mois", "0-12 mois", "Anti-régurgitations", "img/p/novalac/ar-0-36-mois.webp", "Novalac Expert AR 0-36 mois"], ["AR Plus 1", "0-6 mois", "Anti-régurgitations", "img/p/novalac/ar-plus-1.webp", "Novalac Expert AR+ 0-6 mois"], ["AR Plus 2", "6-12 mois", "Anti-régurgitations", "img/p/novalac/ar-plus-2.webp", "Novalac Expert AR+ 6-36 mois"], ["Novagest Plus", "0-12 mois", "Confort digestif", "img/p/novalac/novagest-plus.webp", "Novalac Expert Novagest+ 0-12 mois"], ["Transit 0-36 mois", "0-12 mois", "Transit", "img/p/novalac/transit-0-36-mois.webp", "Novalac Expert Transit+ 0-36 mois"], ["Novalac AC", "0-12 mois", "Coliques", "img/p/novalac/novalac-ac.webp", "Novalac Expert AC 0-36 mois"], ["Novalac S 1", "0-6 mois", "Satiété", "img/p/novalac/novalac-s-1.webp", "Novalac S 1"], ["Novalac S 2", "6-12 mois", "Satiété", "img/p/novalac/novalac-s-2.webp", "Novalac S2"], ["Novagest Plus 12-36 mois", "12 mois et +", "Confort digestif", "img/p/novalac/novagest-plus-12-36-mois.webp", "Novalac Novagest+ 12-36 mois"], ["Diarinova", "0-12 mois", "Sans lactose", "img/p/novalac/diarinova.webp", "Novalac Expert Diarinova"], ["Novabiotic", "6-12 mois", "Sans lactose", "img/p/novalac/novabiotic.webp", "Novalac Expert NovaBiotic"]], "fab": "United Pharmaceuticals"}, {"nom": "Physiolac", "logo": "img/m/physiolac.webp", "produits": [["Physiolac 1", "0-6 mois", "", "img/p/physiolac/physiolac-1.webp", "Physiolac 1"], ["Physiolac 2", "6-12 mois", "", "img/p/physiolac/physiolac-2.webp", "Physiolac 2"], ["Bio AR 1", "0-6 mois", "Anti-régurgitations", "img/p/physiolac/bio-ar-1.webp", "Physiolac Expert Bio AR 1"], ["Physiolac 3 Croissance", "12 mois et +", "", "img/p/physiolac/physiolac-3-croissance.webp", "Physiolac 3 Croissance"], ["Bio 1", "0-6 mois", "Bio", "img/p/physiolac/bio-1.webp", "Physiolac Bio 1"], ["Bio 2", "6-12 mois", "Bio", "img/p/physiolac/bio-2.webp", "Physiolac Bio 2"], ["Bio 3 Croissance", "12 mois et +", "Bio", "img/p/physiolac/bio-3-croissance.webp", "Physiolac Bio 3 Croissance"], ["Bio Épaissi 1", "0-6 mois", "Épaissi", "img/p/physiolac/bio-epaissi-1.webp", "Physiolac Bio Épaissi 1"], ["Bio Épaissi 2", "6-12 mois", "Épaissi", "img/p/physiolac/bio-epaissi-2.webp", "Physiolac Bio Épaissi 2"], ["Bio AR 2", "6-12 mois", "Anti-régurgitations", "img/p/physiolac/bio-ar-2.webp", "Physiolac Expert Bio AR 2"], ["Expert Diarrhées", "0-12 mois", "Sans lactose", "img/p/physiolac/expert-diarrhees.webp", "Physiolac Expert Diarrhées 0-12 mois"]], "fab": "Gilbert"}, {"nom": "Picot", "logo": "img/m/picot.webp", "produits": [["Nutrition Quotidienne 1", "0-6 mois", "", "img/p/picot/nutrition-quotidienne-1.webp", "Picot 1er âge"], ["Nutrition Quotidienne 2", "6-12 mois", "", "img/p/picot/nutrition-quotidienne-2.webp", "Picot 2ème âge"], ["Croissance", "12 mois et +", "", "img/p/picot/croissance.webp", "Picot 3ème âge"], ["AR 2", "6-12 mois", "Anti-régurgitations", "img/p/picot/ar-2.webp", "Picot AR 2ème âge"], ["Picogest 1", "0-6 mois", "Confort digestif", "img/p/picot/picogest-1.webp", "Picogest 1er âge"], ["Picogest 2", "6-12 mois", "Confort digestif", "img/p/picot/picogest-2.webp", "Picogest 2ème âge"], ["Pepti-Junior", "0-12 mois", "Hydrolysat poussé", "img/p/picot/pepti-junior.webp", "Picot Pepti-Junior Hydrolysat de Caséine"], ["Junior 4", "12 mois et +", "", "img/p/picot/junior-4.webp", "Picot Junior 4 Lait de Croissance Système Immunitaire"], ["AR 1", "0-6 mois", "Anti-régurgitations", "img/p/picot/ar-1.webp", "Picot AR 1er âge"], ["Pepti-Junior Caséine AR", "0-12 mois", "Hydrolysat poussé", "img/p/picot/pepti-junior-caseine-ar.webp", "Picot Pepti-Junior Hydrolysat de Caséine AR"], ["Pepti-Junior Riz", "0-12 mois", "Sans PLV", "img/p/picot/pepti-junior-riz.webp", "Picot Pepti-Junior Riz"], ["Pepti-Junior Riz AR", "0-12 mois", "Sans PLV", "img/p/picot/pepti-junior-riz-ar.webp", "Picot Pepti-Junior Riz AR"], ["Bio 1", "0-6 mois", "Bio", "img/p/picot/bio-1.webp", "Picot Bio 1er âge"], ["Bio 2", "6-12 mois", "Bio", "img/p/picot/bio-2.webp", "Picot Bio 2ème âge"], ["Croissance Bio", "12 mois et +", "Bio", "img/p/picot/croissance-bio.webp", "Picot Bio 3ème âge"], ["Bébé Gourmand 1", "0-6 mois", "Épaissi", "img/p/picot/bebe-gourmand-1.webp", "Picot Bébé Gourmand 1er âge"], ["Bébé Gourmand 2", "6-12 mois", "Épaissi", "img/p/picot/bebe-gourmand-2.webp", "Picot Bébé Gourmand 2ème âge"], ["Lémiel 1", "0-6 mois", "Épaissi", "img/p/picot/lemiel-1.webp", "Picot Lémiel 1er âge"], ["Lémiel 2", "6-12 mois", "Épaissi", "img/p/picot/lemiel-2.webp", "Picot Lémiel 2ème âge"], ["Lémiel 3", "12 mois et +", "Épaissi", "img/p/picot/lemiel-3.webp", "Picot Lémiel 3ème âge"]], "fab": "Lactalis"}]}, {"cle": "bio", "libelle": "Marques bio", "marques": [{"nom": "Babybio", "logo": "img/m/babybio.webp", "produits": [["Primea 1", "0-6 mois", "", "img/p/babybio/primea-1.webp", "Babybio Primea 1er âge"], ["Primea 2", "6-12 mois", "", "img/p/babybio/primea-2.webp", "Babybio Primea 2ème âge"], ["Primea 3", "12 mois et +", "", "img/p/babybio/primea-3.webp", "Babybio Primea 3 Croissance"], ["Optima 1", "0-6 mois", "", "img/p/babybio/optima-1.webp", "Babybio Optima 1er âge"], ["Optima 2", "6-12 mois", "", "img/p/babybio/optima-2.webp", "Babybio Optima 2ème âge avec fibres"], ["Optima 3", "12 mois et +", "", "img/p/babybio/optima-3.webp", "Babybio Optima 3 Croissance avec fibres"], ["Caprea 1", "0-6 mois", "Lait de chèvre", "img/p/babybio/caprea-1.webp", "Babybio Caprea 1er âge au lait de chèvre"], ["Caprea 2", "6-12 mois", "Lait de chèvre", "img/p/babybio/caprea-2.webp", "Babybio Caprea 2ème âge au lait de chèvre"], ["Caprea 3", "12 mois et +", "Lait de chèvre", "img/p/babybio/caprea-3.webp", "Babybio Caprea 3 Croissance au lait de chèvre"], ["Optigest 1", "0-6 mois", "Épaissi", "img/p/babybio/optigest-1.webp", "Babybio Optigest 1er âge"], ["Optigest 2", "6-12 mois", "Épaissi", "img/p/babybio/optigest-2.webp", "Babybio Optigest 2ème âge"], ["Croissance liquide", "12 mois et +", "", "img/p/babybio/croissance-liquide.webp", "Babybio Croissance Liquide"]], "fab": "Vitagermine"}, {"nom": "Biostime", "logo": "img/m/biostime.webp", "produits": [["Bio Plus 1", "0-6 mois", "Bio", "img/p/biostime/bio-plus-1.webp", "Biostime Bio Plus 1er âge"], ["Bio Plus 2", "6-12 mois", "Bio", "img/p/biostime/bio-plus-2.webp", "Biostime Bio Plus 2ème âge"], ["Bio Plus 3", "12 mois et +", "Bio", "img/p/biostime/bio-plus-3.webp", "Biostime Bio Plus 3ème âge"], ["SN-2 Bio Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/biostime/sn-2-bio-chevre-1.webp", "Biostime SN-2 Bio Chèvre 1er âge"], ["SN-2 Bio Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/biostime/sn-2-bio-chevre-2.webp", "Biostime SN-2 Bio Chèvre 2ème âge"], ["SN-2 Bio Chèvre 3", "12 mois et +", "Lait de chèvre", "img/p/biostime/sn-2-bio-chevre-3.webp", "Biostime SN-2 Bio Chèvre 3ème âge"], ["AR Bio Plus 1", "0-6 mois", "Anti-régurgitations", "img/p/biostime/ar-bio-plus-1.webp", "Biostime AR Bio Plus 1"], ["AR Bio Plus 2", "6-12 mois", "Anti-régurgitations", "img/p/biostime/ar-bio-plus-2.webp", "Biostime AR Bio Plus 2"]], "fab": "Health & Happiness"}, {"nom": "France Bébé Bio", "logo": "img/m/france-bebe-bio.webp", "produits": [["France Bébé Bio 1", "0-6 mois", "", "img/p/france-bebe-bio/france-bebe-bio-1.webp", "France BéBé Bio 1, lait infantile bio poudre 1er âge"], ["France Bébé Bio 2", "6-12 mois", "", "img/p/france-bebe-bio/france-bebe-bio-2.webp", "France BéBé Bio 2, lait infantile bio poudre 2ème âge"], ["France Bébé Bio 3", "12 mois et +", "", "img/p/france-bebe-bio/france-bebe-bio-3.webp", "France BéBé Bio 3 croissance, lait infantile bio poudre 3ème âge"]], "fab": "France Bébé"}, {"nom": "Good Goût", "logo": "img/m/good-gout.webp", "produits": [["Good Goût 3", "12 mois et +", "", "img/p/good-gout/good-gout-3.webp", "Good Goût Lait de croissance Bio dès 10 mois"]], "fab": "Good Goût"}, {"nom": "HiPP Bio", "logo": "img/m/hipp-bio.webp", "produits": [["Combiotic 1", "0-6 mois", "", "img/p/hipp-bio/combiotic-1.webp", "HiPP Biologique Lait 1 Combiotic FLM"], ["Combiotic 2", "6-12 mois", "", "img/p/hipp-bio/combiotic-2.webp", "HiPP Biologique Lait 2 Combiotic FLM"], ["Combiotic 3", "12 mois et +", "", "img/p/hipp-bio/combiotic-3.webp", "HiPP Biologique Lait 3 Croissance Combiotic FLM"], ["Essentia 1", "0-6 mois", "", "img/p/hipp-bio/essentia-1.webp", "HiPP Biologique Lait 1 Essentia"], ["Essentia 2", "6-12 mois", "", "img/p/hipp-bio/essentia-2.webp", "HiPP Biologique Lait 2 Essentia"], ["Essentia 3", "12 mois et +", "", "img/p/hipp-bio/essentia-3.webp", "HiPP Biologique Lait 3 Essentia Croissance"], ["Combiotic Nutrigest 1", "0-6 mois", "Épaissi", "img/p/hipp-bio/combiotic-nutrigest-1.webp", "HiPP Biologique Lait 1 Combiotic FLM Nutrigest, formule épaissie"], ["Combiotic Nutrigest 2", "6-12 mois", "Épaissi", "img/p/hipp-bio/combiotic-nutrigest-2.webp", "HiPP Biologique Lait 2 Combiotic Nutrigest, formule épaissie"], ["Combiotic Expert AR", "0-12 mois", "Anti-régurgitations", "img/p/hipp-bio/combiotic-expert-ar.webp", "HiPP Combiotic Expert Anti-Régurgitations"], ["Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/hipp-bio/chevre-1.webp", "HiPP Biologique Lait pour nourrissons au lait de chèvre 1"], ["Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/hipp-bio/chevre-2.webp", "HiPP Biologique Lait de suite au lait de chèvre 2"]], "fab": "HiPP"}, {"nom": "Holle", "logo": "img/m/holle.webp", "produits": [["Holle Bio 1", "0-6 mois", "", "img/p/holle/holle-bio-1.webp", "Holle Lait pour nourrissons 1 bio"], ["Holle Bio 2", "6-12 mois", "", "img/p/holle/holle-bio-2.webp", "Holle Lait de suite 2 bio"], ["Holle Bio 3", "12 mois et +", "", "img/p/holle/holle-bio-3.webp", "Holle Lait de suite 3 bio"], ["Holle Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/holle/holle-chevre-1.webp", "Holle Lait pour nourrissons 1 bio au lait de chèvre"], ["Holle Bio 4", "12 mois et +", "", "img/p/holle/holle-bio-4.webp", "Holle Lait de croissance 4 bio"], ["Holle Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/holle/holle-chevre-2.webp", "Holle Lait de suite 2 bio au lait de chèvre"], ["Holle Chèvre 3", "12 mois et +", "Lait de chèvre", "img/p/holle/holle-chevre-3.webp", "Holle Lait de suite 3 bio au lait de chèvre"], ["Holle Croissance 3 liquide", "12 mois et +", "", "img/p/holle/holle-croissance-3-liquide.webp", "Holle Lait de croissance bio liquide, Croissance 3"]], "fab": "Holle"}, {"nom": "Junéo", "logo": "img/m/juneo.webp", "produits": [["Junéo 1", "0-6 mois", "", "img/p/juneo/juneo-1.webp", "Junéo bio vache 1er âge 0-6 mois"], ["Junéo 2", "6-12 mois", "", "img/p/juneo/juneo-2.webp", "Junéo bio vache 2ème âge 6-12 mois"], ["Junéo 3", "12 mois et +", "", "img/p/juneo/juneo-3.webp", "Junéo bio vache 3ème âge 10-36 mois"], ["Junéo Chèvre 1", "0-6 mois", "Lait de chèvre", "img/p/juneo/juneo-chevre-1.webp", "Junéo bio chèvre 1er âge 0-6 mois"], ["Junéo Chèvre 2", "6-12 mois", "Lait de chèvre", "img/p/juneo/juneo-chevre-2.webp", "Junéo bio chèvre 2ème âge 6-12 mois"], ["Junéo Chèvre 3", "12 mois et +", "Lait de chèvre", "img/p/juneo/juneo-chevre-3.webp", "Junéo bio chèvre 3ème âge 10-36 mois"]], "fab": "Junéo"}, {"nom": "Les Récoltes Bio", "logo": "img/m/les-recoltes-bio.webp", "produits": [["Les Récoltes Bio 3", "12 mois et +", "", "img/p/les-recoltes-bio/les-recoltes-bio-3.webp", "Blédina Les Récoltes Bio Croissance 3, lait de croissance liquide"]], "fab": "Les Récoltes Bio"}, {"nom": "Nactalia", "logo": "img/m/nactalia.webp", "produits": [["Nactalia 1", "0-6 mois", "", "img/p/nactalia/nactalia-1.webp", "Nactalia Bio 1er âge"], ["Nactalia 2", "6-12 mois", "", "img/p/nactalia/nactalia-2.webp", "Nactalia Bio 2e âge"], ["Nactalia 3", "12 mois et +", "", "img/p/nactalia/nactalia-3.webp", "Nactalia Bio 3e âge"]], "fab": "Nutribio"}, {"nom": "Popote", "logo": "img/m/popote.webp", "produits": [["Popote 1", "0-6 mois", "", "img/p/popote/popote-1.webp", "Popote Le Lait 1er âge"], ["Popote Croissance", "12 mois et +", "", "img/p/popote/popote-croissance.webp", "Popote Le Lait 3ème âge Croissance"], ["Popote 2", "6-12 mois", "", "img/p/popote/popote-2.webp", "Popote Le Lait 2ème âge"]], "fab": "Popote"}]}, {"cle": "chevre", "libelle": "Laits de chèvre", "marques": [{"nom": "Capricare", "logo": "img/m/capricare.webp", "produits": [["Capricare 1", "0-6 mois", "Lait de chèvre", "img/p/capricare/capricare-1.webp", "Capricare 1er âge, lait pour nourrissons"], ["Capricare 2", "6-12 mois", "Lait de chèvre", "img/p/capricare/capricare-2.webp", "Capricare 2ème âge, lait de suite"], ["Capricare 3", "12 mois et +", "Lait de chèvre", "img/p/capricare/capricare-3.webp", "Capricare 3ème âge, lait de croissance"]], "fab": "PediAct"}, {"nom": "Kabrita", "logo": "img/m/kabrita.webp", "produits": [["Kabrita 1", "0-6 mois", "Lait de chèvre", "img/p/kabrita/kabrita-1.webp", "Kabrita 1 Lait infantile"], ["Kabrita 2", "6-12 mois", "Lait de chèvre", "img/p/kabrita/kabrita-2.webp", "Kabrita 2 Lait de suite"], ["Kabrita 3", "12 mois et +", "Lait de chèvre", "img/p/kabrita/kabrita-3.webp", "Kabrita 3 Lait de croissance"]], "fab": "Ausnutria"}, {"nom": "Pure Goat", "logo": "img/m/pure-goat.webp", "produits": [["Pure Goat 1", "0-6 mois", "Lait de chèvre", "img/p/pure-goat/pure-goat-1.webp", "Pure Goat BIO Préparation pour Nourrissons 1"], ["Pure Goat 2", "6-12 mois", "Lait de chèvre", "img/p/pure-goat/pure-goat-2.webp", "Pure Goat BIO Lait de Suite 2"], ["Pure Goat 3", "12 mois et +", "Lait de chèvre", "img/p/pure-goat/pure-goat-3.webp", "Pure Goat BIO Lait de Suite 3"]], "fab": "The Pure Goat Company"}]}, {"cle": "medicales", "libelle": "Préparations médicales, souvent sur ordonnance", "marques": [{"nom": "Alfamino", "logo": "img/m/alfamino.webp", "produits": [["Alfamino", "0-12 mois", "Acides aminés", "img/p/alfamino/alfamino.webp", "Alfamino HMO"]], "fab": "Nestlé Health Science"}, {"nom": "Alfaré", "logo": "img/m/alfare.webp", "produits": [["Alfaré", "0-12 mois", "Hydrolysat poussé", "img/p/alfare/alfare.webp", "Alfaré HMO"]], "fab": "Nestlé Health Science"}, {"nom": "Althéra", "logo": "img/m/althera.webp", "produits": [["Althéra", "0-12 mois", "Hydrolysat poussé", "img/p/althera/althera.webp", "Althéra HMO"]], "fab": "Nestlé Health Science"}, {"nom": "Infatrini", "logo": "img/m/infatrini.webp", "produits": [["Infatrini", "0-12 mois", "Enrichi en énergie", "img/p/infatrini/infatrini.webp", "Nutricia Infatrini"], ["Infatrini Peptisorb", "0-12 mois", "Hydrolysat", "img/p/infatrini/infatrini-peptisorb.webp", "Nutricia Infatrini Peptisorb"]], "fab": "Nutricia (Danone)"}, {"nom": "Neocate", "logo": "img/m/neocate.webp", "produits": [["Neocate Syneo", "0-12 mois", "Acides aminés", "img/p/neocate/neocate-syneo.webp", "Gallia Bébé Expert Neocate 0-12 mois (avec SYNEO)"], ["Neocate Junior", "12 mois et +", "Acides aminés", "img/p/neocate/neocate-junior.webp", "Gallia Bébé Expert Neocate Junior"], ["Neocate H", "0-12 mois", "Acides aminés", "img/p/neocate/neocate-h.webp", "Gallia Bébé Expert Neocate H 0-12 mois"]], "fab": "Nutricia"}, {"nom": "Novalac Allernova", "logo": "img/m/novalac-allernova.webp", "produits": [["Allernova AR", "0-12 mois", "Hydrolysat poussé", "img/p/novalac-allernova/allernova-ar.webp", "Novalac Expert Allernova AR"], ["Novalac Amina", "0-12 mois", "Acides aminés", "img/p/novalac-allernova/novalac-amina.webp", "Novalac Expert AminA"], ["Allernova", "0-12 mois", "Hydrolysat poussé", "img/p/novalac-allernova/allernova.webp", "Novalac Expert Allernova"], ["Novalac Riz", "0-12 mois", "Sans PLV", "img/p/novalac-allernova/novalac-riz.webp", "Novalac Expert Riz"], ["Novalac Riz AR", "0-12 mois", "Sans PLV", "img/p/novalac-allernova/novalac-riz-ar.webp", "Novalac Expert Riz AR"]], "fab": "United Pharmaceuticals"}, {"nom": "Nutramigen", "logo": "img/m/nutramigen.webp", "produits": [["Nutramigen 1 LGG", "0-6 mois", "Hydrolysat poussé", "img/p/nutramigen/nutramigen-1-lgg.webp", "Nutramigen 1 LGG"], ["Nutramigen 2 LGG", "6-12 mois", "Hydrolysat poussé", "img/p/nutramigen/nutramigen-2-lgg.webp", "Nutramigen 2 LGG"], ["Nutramigen Puramino", "0-12 mois", "Acides aminés", "img/p/nutramigen/nutramigen-puramino.webp", "Nutramigen Puramino"], ["Nutramigen 3 LGG", "12 mois et +", "Hydrolysat poussé", "img/p/nutramigen/nutramigen-3-lgg.webp", "Nutramigen 3 LGG"], ["Nutramigen Puramino Junior", "12 mois et +", "Acides aminés", "img/p/nutramigen/nutramigen-puramino-junior.webp", "Nutramigen Puramino Junior"]], "fab": "Mead Johnson"}, {"nom": "Pepticate", "logo": "", "produits": [["Pepticate 1", "0-6 mois", "Hydrolysat poussé", "img/p/pepticate/pepticate-1.webp", "Gallia Bébé Expert Pepticate 1"], ["Pepticate 2", "6-12 mois", "Hydrolysat poussé", "img/p/pepticate/pepticate-2.webp", "Gallia Bébé Expert Pepticate 2"]], "fab": "Nutricia"}]}];
 
-  var VERSION = "0.5.0";
+  var VERSION = "0.6.0";
 
   /* Adresse a laquelle les points de vente envoient leur declaration pendant
      la phase pilote. Volontairement vide : une adresse personnelle publiee
@@ -644,6 +648,23 @@
 
   /* Un seul passage vers le serveur, pour que la panne se traite au meme
      endroit partout. Toute reponse qui n'est pas un objet est une panne. */
+  /* La seule lecture : qui reference tel lait. Un GET simple, que le
+     navigateur envoie sans demande prealable. */
+  function lireServeur(chemin) {
+    if (!serveurPret()) return Promise.reject({ horsService: true });
+    // Un fetch qui echoue d'un coup, au lieu de rendre une promesse
+    // rejetee, ne doit pas remonter jusqu'au branchement de l'ecran.
+    var envoi;
+    try { envoi = fetch(SERVEUR + chemin, { method: "GET" }); }
+    catch (e) { return Promise.reject({ reseau: true }); }
+    return envoi.then(function (r) {
+      return r.json().catch(function () { throw { reseau: true }; }).then(function (d) {
+        if (!r.ok || !d || typeof d !== "object") throw { reseau: true, code: r.status };
+        return d;
+      });
+    }, function () { throw { reseau: true }; });
+  }
+
   function appelServeur(chemin, corps) {
     if (!serveurPret()) return Promise.reject({ horsService: true });
     return fetch(SERVEUR + chemin, {
@@ -882,6 +903,13 @@
        ou l'accueil quand on a touche un lait deja enregistre. Sans cela,
        le retour envoyait dans un ecran de choix qu'on n'a jamais vu. */
     retourRecherche: "produits",
+    /* Ce que les points de vente declarent pour le lait cherche, tel que
+       le serveur l'a rendu : { cle, etat, maj, avec, lu }. Le serveur ne
+       recoit que le lait, jamais la liste des pharmacies autour du
+       parent, qui dirait ou il se trouve. */
+    decla: null,
+    // L'envoi de sa declaration par un pharmacien valide.
+    declEnvoi: null,
     /* Signalement d'un lait absent du catalogue. « envoye » est retenu sur
        le telephone : on ne redemande pas la meme chose deux fois de suite. */
     signalNom: "",
@@ -1999,6 +2027,68 @@
       }).join("") + "</div>";
   }
 
+  /* ================================================================== */
+  /* Ce que declarent les points de vente                                 */
+  /* ================================================================== */
+
+  /* Demande au serveur qui reference ce lait, une fois par lait et par
+     cinq minutes. On envoie le lait, jamais les pharmacies autour : le
+     tri par distance se fait ici, sur le telephone. Sans reseau, rien ne
+     change a l'ecran : chaque point de vente reste « non declare », ce
+     qui est vrai de ce que l'app sait. */
+  var FRAICHEUR_DECLA_MS = 5 * 60 * 1000;
+  function assurerDeclarations(cle) {
+    if (!serveurPret() || !cle) return;
+    var d = S.decla;
+    if (d && d.cle === cle && (d.etat === "charge" ||
+        (d.etat === "ok" && Date.now() - d.lu < FRAICHEUR_DECLA_MS))) return;
+    S.decla = { cle: cle, etat: "charge", maj: {}, avec: {}, lu: Date.now() };
+    lireServeur("/declarations?produit=" + encodeURIComponent(cle)).then(function (r) {
+      if (!S.decla || S.decla.cle !== cle) return;
+      var avec = {};
+      (Array.isArray(r.avec) ? r.avec : []).forEach(function (id) { avec[id] = true; });
+      S.decla = { cle: cle, etat: "ok", maj: r.maj && typeof r.maj === "object" ? r.maj : {}, avec: avec, lu: Date.now() };
+      // Redessiner sans remonter en haut : le parent a peut-etre deja
+      // fait defiler la liste quand la reponse arrive.
+      if ((S.vue === "resultats" || S.vue === "fiche") && S.lait && cleLait(S.lait) === cle) {
+        var y = $e.scrollTop;
+        rendre();
+        $e.scrollTop = y;
+      }
+    }, function () {
+      if (S.decla && S.decla.cle === cle) S.decla.etat = "erreur";
+    });
+  }
+
+  /* Une declaration reste montree quel que soit son age : decision
+     d'Olivier, sinon la carte se vide des qu'un pharmacien oublie de
+     confirmer. Au-dela d'un mois, on dit son age reel plutot qu'une
+     date qu'on lirait trop vite : « il y a 5 mois », « il y a plus d'un an ». */
+  var JOUR_S = 24 * 3600;
+  function etatDeclaration(p) {
+    var d = S.decla, id = p[9];
+    if (!d || d.etat !== "ok" || !S.lait || d.cle !== cleLait(S.lait) || !id || !d.maj[id]) return null;
+    var jours = (Date.now() / 1000 - d.maj[id]) / JOUR_S;
+    return {
+      oui: !!d.avec[id],
+      date: dateJourMois(d.maj[id]),
+      mois: jours <= 30 ? 0 : Math.max(1, Math.floor(jours / 30.44))
+    };
+  }
+
+  // La meme forme que « Trouvé ici le 29/09 ».
+  function dateJourMois(secondes) {
+    var d = new Date(secondes * 1000);
+    return ("0" + d.getDate()).slice(-2) + "/" + ("0" + (d.getMonth() + 1)).slice(-2);
+  }
+
+  function libelleDeclaration(e) {
+    var quand = !e.mois ? "le " + e.date
+      : e.mois >= 12 ? "il y a plus d'un an"
+      : "il y a " + e.mois + " mois";
+    return (e.oui ? "Référencé ici" : "Non référencé ici") + ", déclaré " + quand;
+  }
+
   V.resultats = function () {
     var l = S.lait;
     // Le retour ramene la d'ou la recherche est partie, et non a
@@ -2035,8 +2125,14 @@
     h += "</div>";
 
     if (l) {
-      h += '<div class="alerte">BIBE ne sait pas encore quels points de vente proposent ce lait. ' +
-        "<b>Appelez avant de vous déplacer.</b></div>";
+      // Des qu'un point de vente de la liste a declare, l'avertissement
+      // change. Il ne disparait pas : reference ne veut pas dire en stock.
+      var unDeclare = S.resultats.some(function (r) { return !!etatDeclaration(r.p); });
+      h += unDeclare
+        ? '<div class="alerte">Les points de vente marqués « Référencé ici » l\'ont déclaré eux-mêmes. ' +
+          "Référencé ne veut pas dire en stock : <b>appelez avant de vous déplacer.</b></div>"
+        : '<div class="alerte">BIBE ne sait pas encore quels points de vente proposent ce lait. ' +
+          "<b>Appelez avant de vous déplacer.</b></div>";
     }
 
     S.resultats.forEach(function (r, i) {
@@ -2045,8 +2141,13 @@
         '<span class="pdv-nom">' + ech(p[0]) + '</span><br><span class="pdv-adr">' +
         ech([p[1], p[3]].filter(Boolean).join(", ")) + '</span></span><span class="pdv-dist">' +
         formaterDist(r.d) + '</span></span><span class="etiquettes">';
+      // Ce que le parent a constate lui-meme passe devant ce que le point
+      // de vente a declare : c'est plus recent et c'est le sien.
+      var de = l ? etatDeclaration(p) : null;
       if (ret && ret.v === "oui") h += '<span class="etiquette trouve">Trouvé ici le ' + ech(ret.date) + "</span>";
       else if (ret && ret.v === "non") h += '<span class="etiquette absent">Absent le ' + ech(ret.date) + "</span>";
+      else if (de) h += '<span class="etiquette ' + (de.oui ? "declare" : "non-reference") + '">' +
+        ech(libelleDeclaration(de)) + "</span>";
       else if (l) h += '<span class="etiquette inconnu">Référencement non déclaré</span>';
       // Ouvert ou ferme : c'est ce qu'un parent presse regarde en premier,
       // avant meme la distance.
@@ -2080,7 +2181,10 @@
       (p[4] ? '<a class="act-1" id="appeler" href="' + telLien(p[4]) + '" style="text-align:center;text-decoration:none">Appeler</a>'
             : '<button class="act-1" disabled>Pas de numéro</button>') +
       '<button class="act-2" data-va="navigation">Y aller</button></div>';
-    h += '<div class="infos"><div class="info"><span class="k">Distance</span><span>' + formaterDist(r.d) + "</span></div>" +
+    var dfi = S.lait ? etatDeclaration(p) : null;
+    h += '<div class="infos">' +
+      (dfi ? '<div class="info"><span class="k">Ce lait</span><span>' + ech(libelleDeclaration(dfi)) + "</span></div>" : "") +
+      '<div class="info"><span class="k">Distance</span><span>' + formaterDist(r.d) + "</span></div>" +
       (et ? '<div class="info"><span class="k">Aujourd\'hui</span><span>' + ligneAujourdhui(et) + "</span></div>" +
         '<div class="info"><span class="k">Horaires</span><span>' + horairesSemaine(p[8]) + "</span></div>" : "") +
       "</div>";
@@ -2316,11 +2420,23 @@
         "et vous serez parmi les premiers visibles au lancement.</div>";
     }
     h += (o ? blocOfficine("proAccueil") : "");
+    /* Une declaration n'est jamais retiree, quel que soit son age :
+       decision d'Olivier. Au-dela d'un mois, on invite le pharmacien a la
+       confirmer, parce que les parents en voient la date. Confirmer, c'est
+       renvoyer la meme liste d'un geste. */
+    var aConfirmer = declarationAConfirmer();
+    if (aConfirmer) {
+      h += '<div class="alerte"><b>Votre déclaration date du ' + ech(dateJourMois(S.pro.declareLe)) + ".</b> " +
+        "Les parents voient cette date. Si vos références n'ont pas changé, confirmez-les d'un geste.</div>" +
+        '<button class="cta vert" id="confirmer-decl"' + (S.declEnvoi === "envoi" ? " disabled" : "") + ">" +
+        (S.declEnvoi === "envoi" ? "Envoi…" : "Rien n'a changé : confirmer") + "</button>";
+    }
     // Cocher ses references ne demande aucune verification : on ne bloque
     // qu'au moment d'envoyer. Un pharmacien doit pouvoir regarder et
     // preparer avant de prouver quoi que ce soit.
-    h += '<button class="cta vert" ' + (o ? 'data-va="marques"' : 'data-officine="marques"') +
-      ">Déclarer mes références</button>";
+    h += '<button class="' + (aConfirmer ? "cta-2" : "cta vert") + '" ' +
+      (o ? 'data-va="marques"' : 'data-officine="marques"') + ">" +
+      (aConfirmer ? "Modifier mes références" : "Déclarer mes références") + "</button>";
     if (serveurPret() && o && !o.absente) h += blocVerification();
     h += '<div class="aide">BIBE ne se connecte pas à votre logiciel d\'officine et n\'affiche jamais de stock. ' +
       "Il indiquera aux parents quelles pharmacies référencent leur lait, et les invitera à vous appeler.</div>";
@@ -2499,6 +2615,10 @@
         .map(function (p) { return '<span class="pastille">' + ech(p[0]) + "</span>"; }).join("");
       h += '<div class="recap-marque"><div class="recap-nom">' + ech(m.nom) + '<span class="recap-nb">' + e.nb + ' réf.</span></div><div class="recap-refs">' + refs + "</div></div>";
     });
+    // Point de vente verifie : la declaration part au serveur, et les
+    // parents la voient des l'envoi. C'est le seul chemin qui publie.
+    if (proPeutEnvoyer()) return h + blocEnvoiDeclaration();
+
     if (CONTACT_DECLARATIONS) {
       h += '<a class="cta vert" style="display:block;text-align:center;text-decoration:none;line-height:22px" href="mailto:' +
         ech(CONTACT_DECLARATIONS) + "?subject=" + encodeURIComponent("Déclaration BIBE") +
@@ -2513,6 +2633,45 @@
       "Elle sera reprise dans votre espace dès son ouverture, vous n'aurez rien à refaire.</div>";
     return h;
   };
+
+  // Au-dela d'un mois, le pharmacien est invite a confirmer sa declaration.
+  var RAPPEL_DECLA_JOURS = 30;
+  function declarationAConfirmer() {
+    return proPeutEnvoyer() && !!S.pro.declareLe &&
+      (Date.now() / 1000 - S.pro.declareLe) / JOUR_S > RAPPEL_DECLA_JOURS;
+  }
+
+  function proPeutEnvoyer() {
+    return serveurPret() && etatPro() === "valide" && !!(S.pro && S.pro.jeton) &&
+      !!S.officine && !S.officine.absente;
+  }
+
+  // La liste envoyee au serveur : « marque|produit », la meme cle que
+  // celle que l'app des parents cherche.
+  function produitsDeclares() {
+    var liste = [];
+    MARQUES.forEach(function (m) {
+      var e = S.decl[m.nom];
+      m.produits.forEach(function (p) { if (e.coches[p[0]]) liste.push(m.nom + "|" + p[0]); });
+    });
+    return liste;
+  }
+
+  function blocEnvoiDeclaration() {
+    var deja = S.pro && S.pro.declareLe, etat = S.declEnvoi;
+    var h = '<button class="cta vert" id="envoyer-decl"' + (etat === "envoi" ? " disabled" : "") + ">" +
+      (etat === "envoi" ? "Envoi…" : deja ? "Envoyer ma déclaration à jour" : "Envoyer ma déclaration") + "</button>";
+    if (etat === "erreur") {
+      h += '<div class="aide alerte">L\'envoi n\'a pas abouti. Vérifiez votre connexion et réessayez.</div>';
+    } else if (etat === "refuse") {
+      h += '<div class="aide alerte">Votre vérification n\'est plus reconnue. Refaites-la depuis votre espace, puis renvoyez.</div>';
+    }
+    h += '<div class="aide">' + (deja
+      ? "Dernier envoi le " + ech(dateJourMois(S.pro.declareLe)) + " : " + compte(S.pro.declareNb || 0, "référence") +
+        ". Chaque envoi remplace le précédent."
+      : "Les parents verront vos références dès l'envoi. Chaque envoi remplace le précédent.") + "</div>";
+    return h;
+  }
 
   /* ================================================================== */
   /* Navigation                                                           */
@@ -2716,6 +2875,35 @@
   }
 
   function brancher() {
+    // Les declarations du lait cherche, demandees une fois l'ecran pose.
+    if ((S.vue === "resultats" || S.vue === "fiche") && S.lait) assurerDeclarations(cleLait(S.lait));
+
+    /* Le pharmacien verifie envoie sa declaration. Le serveur remplace
+       la precedente en entier ; un refus 403 veut dire que son jeton ne
+       vaut plus, pas que le reseau a flanche. */
+    function envoyerDeclaration(mot) {
+      if (S.declEnvoi === "envoi" || !proPeutEnvoyer()) return;
+      S.declEnvoi = "envoi";
+      rendre();
+      appelServeur("/declaration", { pdv: S.pro.pdv, jeton: S.pro.jeton, produits: produitsDeclares() }).then(function (d) {
+        S.pro.declareLe = d.maj_le;
+        S.pro.declareNb = d.nb;
+        ecrire("pro", S.pro);
+        S.declEnvoi = "ok";
+        rendre();
+        toast(mot);
+      }, function (e) {
+        S.declEnvoi = e && e.code === 403 ? "refuse" : "erreur";
+        rendre();
+      });
+    }
+    var ed = $("envoyer-decl");
+    if (ed) ed.addEventListener("click", function () { envoyerDeclaration("Déclaration envoyée"); });
+    // La meme liste, renvoyee telle quelle : la date vue par les parents
+    // redevient celle d'aujourd'hui.
+    var cf = $("confirmer-decl");
+    if (cf) cf.addEventListener("click", function () { envoyerDeclaration("Déclaration confirmée"); });
+
     [$e, $b].forEach(function (z) {
       z.querySelectorAll("[data-va]").forEach(function (b) {
         b.addEventListener("click", function () { aller(b.dataset.va); });
